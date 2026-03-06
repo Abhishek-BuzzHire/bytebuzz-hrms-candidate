@@ -9,7 +9,7 @@ import { Search, SlidersHorizontal, MapPin, Briefcase, Filter } from 'lucide-rea
 import { useActiveJobs, useJobDetails, useSavedJobs, useApplications } from '@/hooks/jobs/use-jobs';
 import JobCard from '@/components/jobs/JobCard';
 import JobDetails from '@/components/jobs/JobDetail';
-import ApplyModal from '@/components/jobs/AppluModal';
+import ApplyModal from '@/components/jobs/ApplyModal';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -18,7 +18,7 @@ export default function JobsPage() {
   const { data: jobs, loading: jobsLoading } = useActiveJobs();
   const { data: savedJobs, toggleSave } = useSavedJobs();
   const { apply } = useApplications();
-  
+
   const [search, setSearch] = useState('');
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
@@ -28,8 +28,8 @@ export default function JobsPage() {
 
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
-      const matchesSearch = job.title.toLowerCase().includes(search.toLowerCase()) || 
-                            job.company.toLowerCase().includes(search.toLowerCase());
+      const matchesSearch = job.title.toLowerCase().includes(search.toLowerCase()) ||
+        job.company.toLowerCase().includes(search.toLowerCase());
       const matchesWorkMode = activeWorkMode ? job.workMode === activeWorkMode : true;
       return matchesSearch && matchesWorkMode;
     });
@@ -58,8 +58,8 @@ export default function JobsPage() {
           <div className="flex gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search Active Jobs by title, company, or skills..." 
+              <Input
+                placeholder="Search Active Jobs by title, company, or skills..."
                 className="pl-10 py-6"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -72,26 +72,26 @@ export default function JobsPage() {
           </div>
 
           <div className="flex items-center gap-6 overflow-x-auto pb-2 no-scrollbar">
-             <div className="flex items-center gap-2 pr-4 border-r">
-                <Filter className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-semibold whitespace-nowrap">Mode:</span>
-             </div>
-             <div className="flex gap-2">
-                {['Onsite', 'Hybrid', 'Remote'].map(mode => (
-                  <Badge 
-                    key={mode} 
-                    variant={activeWorkMode === mode ? "default" : "outline"} 
-                    className="cursor-pointer px-4 py-1.5"
-                    onClick={() => setActiveWorkMode(activeWorkMode === mode ? null : mode)}
-                  >
-                    {mode}
-                  </Badge>
-                ))}
-             </div>
-             <div className="flex items-center gap-2 pl-4 border-l">
-                <span className="text-sm font-semibold whitespace-nowrap">Experience:</span>
-                <Badge variant="outline" className="cursor-pointer">All Levels</Badge>
-             </div>
+            <div className="flex items-center gap-2 pr-4 border-r">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-semibold whitespace-nowrap">Mode:</span>
+            </div>
+            <div className="flex gap-2">
+              {['Onsite', 'Hybrid', 'Remote'].map(mode => (
+                <Badge
+                  key={mode}
+                  variant={activeWorkMode === mode ? "default" : "outline"}
+                  className="cursor-pointer px-4 py-1.5"
+                  onClick={() => setActiveWorkMode(activeWorkMode === mode ? null : mode)}
+                >
+                  {mode}
+                </Badge>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 pl-4 border-l">
+              <span className="text-sm font-semibold whitespace-nowrap">Experience:</span>
+              <Badge variant="outline" className="cursor-pointer">All Levels</Badge>
+            </div>
           </div>
         </header>
 
@@ -105,9 +105,9 @@ export default function JobsPage() {
                   ))
                 ) : filteredJobs.length > 0 ? (
                   filteredJobs.map(job => (
-                    <JobCard 
-                      key={job.id} 
-                      job={job} 
+                    <JobCard
+                      key={job.id}
+                      job={job}
                       isActive={selectedJobId === job.id}
                       onClick={() => setSelectedJobId(job.id)}
                       isSaved={savedJobs.some(s => s.jobId === job.id)}
@@ -127,9 +127,9 @@ export default function JobsPage() {
           </div>
 
           <div className="lg:col-span-3 overflow-hidden">
-            <JobDetails 
-              job={selectedJob} 
-              loading={detailsLoading} 
+            <JobDetails
+              job={selectedJob}
+              loading={detailsLoading}
               onApply={() => setApplyModalOpen(true)}
               onSave={toggleSave}
               isSaved={selectedJob ? savedJobs.some(s => s.jobId === selectedJob.id) : false}
@@ -138,7 +138,7 @@ export default function JobsPage() {
         </div>
       </div>
 
-      <ApplyModal 
+      <ApplyModal
         job={selectedJob}
         open={applyModalOpen}
         onOpenChange={setApplyModalOpen}
