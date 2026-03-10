@@ -3,14 +3,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Briefcase, 
-  Bookmark, 
-  FileText, 
-  User, 
-  Settings, 
-  HelpCircle, 
+import {
+  LayoutDashboard,
+  Briefcase,
+  Bookmark,
+  FileText,
+  User,
+  Settings,
+  HelpCircle,
   LogOut,
   Search
 } from 'lucide-react';
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import ProfileSidebarStepper from '@/components/profile/ProfileSidebarStepper';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -32,10 +33,9 @@ const secondaryItems = [
   { icon: Settings, label: 'Settings', href: '#' },
 ];
 
-export default function Sidebar() {
-  const pathname = usePathname();
-  const completion = 75; // Mock completion percentage
 
+export default function Sidebar({ completion = 0 }: { completion: number }) {
+  const pathname = usePathname();
   return (
     <aside className="w-64 h-screen bg-white border-r flex flex-col fixed left-0 top-0 z-40">
       <div className="p-6">
@@ -48,22 +48,22 @@ export default function Sidebar() {
 
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input 
-            type="text" 
-            placeholder="Search" 
+          <input
+            type="text"
+            placeholder="Search"
             className="w-full bg-secondary/50 rounded-md py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
 
         <nav className="space-y-1">
           {navItems.map((item) => (
-            <Link 
-              key={item.href} 
+            <Link
+              key={item.href}
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                pathname === item.href 
-                  ? "bg-primary/10 text-primary" 
+                pathname === item.href
+                  ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
               )}
             >
@@ -75,21 +75,14 @@ export default function Sidebar() {
       </div>
 
       <div className="mt-auto px-6 pb-6 space-y-6">
-        <div className="bg-secondary/30 rounded-lg p-4 space-y-3">
-          <div className="flex justify-between items-center text-xs font-semibold">
-            <span>Profile Completion</span>
-            <span className="text-primary">{completion}%</span>
-          </div>
-          <Progress value={completion} className="h-1.5" />
-          <Button variant="link" asChild className="p-0 h-auto text-xs">
-            <Link href="/profile/edit">Complete your profile →</Link>
-          </Button>
-        </div>
+
+        <ProfileSidebarStepper completion={completion} />
+
 
         <nav className="space-y-1">
           {secondaryItems.map((item) => (
-            <Link 
-              key={item.label} 
+            <Link
+              key={item.label}
               href={item.href}
               className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-secondary/80 hover:text-foreground transition-colors"
             >
