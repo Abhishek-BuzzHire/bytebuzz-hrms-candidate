@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { fetchLogin } from "@/apis/user";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -36,35 +37,26 @@ export default function LoginPage() {
         }
     }, []);
 
+    const { login } = useAuth();
+
     const handleLogin = async () => {
         if (!username || !password) {
             setError("Please enter username and password");
             return;
         }
-
         try {
             setSubmitting(true);
             setError(null);
+            const data = await fetchLogin({ email: username, password });
 
-            const data = await fetchLogin({
-                email: username,
-                password,
-            });
-
-            if (data?.access) {
-                localStorage.setItem("access_token", data.access);
-            }
-            if (data?.refresh) {
-                localStorage.setItem("refresh_token", data.refresh);
+            if (data?.access && data?.refresh) {
+                login(data.access, data.refresh); // ✅ sets cookies, decodes user
             }
 
             router.push(returnUrl || "/dashboard");
-
         } catch (err) {
             const error = err as AxiosError<any>;
-            setError(
-                error.response?.data?.message || "Invalid username or password"
-            );
+            setError(error.response?.data?.message || "Invalid username or password");
         } finally {
             setSubmitting(false);
         }
@@ -90,8 +82,8 @@ export default function LoginPage() {
                 {/* ✅ Verified message banner */}
                 {verifiedMessage && (
                     <div className={`mb-5 rounded-lg border px-3 py-2.5 text-sm ${verifiedMessage.type === "success"
-                            ? "border-green-200 bg-green-50 text-green-800"
-                            : "border-red-200 bg-red-50 text-red-800"
+                        ? "border-green-200 bg-green-50 text-green-800"
+                        : "border-red-200 bg-red-50 text-red-800"
                         }`}>
                         {verifiedMessage.text}
                     </div>
