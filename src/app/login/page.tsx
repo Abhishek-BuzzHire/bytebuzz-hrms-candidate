@@ -69,7 +69,7 @@ export default function LoginPage() {
                 {/* Header */}
                 <div className="text-center mb-7">
                     <div className="w-[52px] h-[52px] rounded-[14px] bg-blue-50 border border-blue-200 flex items-center justify-center mx-auto mb-5">
-                        <Image src="/logo.webp" alt="" height={30} width={30} />
+                        <Image src="/images/logo.png" alt="" height={30} width={30} />
                     </div>
                     <h2 className="text-2xl font-bold tracking-[-0.025em] text-slate-900 mb-1.5">
                         Log in to your account

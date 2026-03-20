@@ -9,6 +9,12 @@ export const basicInfoSchema = z.object({
   experience_years: z.coerce.number().min(0).optional(),
   experience_months: z.coerce.number().min(0).max(11).optional(),
   location_text: z.string().optional(),
+   location_id: z.number().optional(),           // ✅ add karo
+  location_data: z.object({                     // ✅ add karo
+    city: z.string(),
+    state: z.string(),
+    country: z.string(),
+  }).optional(),
   current_salary_amount: z.coerce.number().min(0).optional(),
   expected_salary_amount: z.coerce.number().min(0).optional(),
   salary_currency: z.string().optional(),

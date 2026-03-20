@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useApplications } from '@/hooks/jobs/use-jobs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,12 +12,13 @@ export default function ApplicationsPage() {
   const { data: applications, loading } = useApplications();
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Applied': return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100">Applied</Badge>;
-      case 'Under Review': return <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100">Under Review</Badge>;
-      case 'Interview': return <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-100">Interview</Badge>;
-      case 'Offer': return <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100">Offer</Badge>;
-      case 'Rejected': return <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100">Rejected</Badge>;
+    const s = status?.toLowerCase();
+    switch (s) {
+      case 'applied': return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100">Applied</Badge>;
+      case 'under review': return <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100">Under Review</Badge>;
+      case 'interview': return <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-100">Interview</Badge>;
+      case 'offer': return <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100">Offer</Badge>;
+      case 'rejected': return <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100">Rejected</Badge>;
       default: return <Badge variant="secondary">{status}</Badge>;
     }
   };
@@ -36,7 +36,7 @@ export default function ApplicationsPage() {
               <div key={i} className="h-24 bg-secondary/30 rounded-xl animate-pulse" />
             ))}
           </div>
-        ) : applications.length > 0 ? (
+        ) : applications?.length > 0 ? (
           <div className="space-y-4">
             {applications.map(app => (
               <Card key={app.id} className="shadow-sm border-transparent hover:border-secondary transition-colors overflow-hidden">
@@ -48,8 +48,8 @@ export default function ApplicationsPage() {
                         <Briefcase className="w-7 h-7 text-muted-foreground" />
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-lg font-bold leading-tight">{app.jobTitle}</h3>
-                        <p className="text-sm font-medium text-primary">{app.company}</p>
+                        <h3 className="text-lg font-bold leading-tight">{app.job_title}</h3>
+                        <p className="text-sm font-medium text-primary">{app.company_name}</p>
                       </div>
                     </div>
 
@@ -58,7 +58,9 @@ export default function ApplicationsPage() {
                         <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Applied Date</p>
                         <div className="flex items-center gap-2 text-sm font-semibold">
                           <Calendar className="w-4 h-4 text-muted-foreground" />
-                          {new Date(app.appliedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {app.applied_at 
+                            ? new Date(app.applied_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+                            : 'Date N/A'}
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -69,7 +71,9 @@ export default function ApplicationsPage() {
                       </div>
                       <div className="space-y-1 md:block hidden">
                         <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Last Update</p>
-                        <p className="text-sm font-semibold text-muted-foreground italic">2 days ago</p>
+                        <p className="text-sm font-semibold text-muted-foreground italic">
+                           {app.updated_at ? new Date(app.updated_at).toLocaleDateString() : 'Just now'}
+                        </p>
                       </div>
                     </div>
 
@@ -78,9 +82,13 @@ export default function ApplicationsPage() {
                          <Info className="w-4 h-4" />
                          Status Info
                        </Button>
-                       <Button size="sm" className="gap-1">
-                         View Details
-                         <ChevronRight className="w-4 h-4" />
+                       
+                       {/* ✅ FIXED: View Details button ab /dashboard/jobs page par id bheja karega */}
+                       <Button size="sm" className="gap-1" asChild>
+                         <Link href={`/dashboard/jobs?id=${app.job_id || app.job}`}>
+                           View Details
+                           <ChevronRight className="w-4 h-4" />
+                         </Link>
                        </Button>
                     </div>
                   </div>
@@ -98,7 +106,7 @@ export default function ApplicationsPage() {
               Your applications will appear here once you apply for jobs.
             </p>
             <Button asChild>
-              <Link href="/jobs">Search for jobs</Link>
+              <Link href="/dashboard/jobs">Search for jobs</Link>
             </Button>
           </div>
         )}

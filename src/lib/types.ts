@@ -42,6 +42,7 @@ export interface Education {
 export interface Skill {
   id: number;
   name: string;
+  skill_name?: string; 
   proficiency?: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
   years_experience?: number;
   is_primary?: boolean;
@@ -52,9 +53,18 @@ export interface Resume {
   file_name: string;
   file_url: string;
   is_active: boolean;
-  uploaded_at: string; // ISO string
+  uploaded_at: string;
+  file_size_bytes?: number;     // ✅ add karo
 }
 
+export interface Application {
+  id: number;
+  job_title: string;
+  company_name: string;
+  status: string;
+  applied_at: string;
+  // baaki fields jo backend se aate hain
+}
 export type ProfileSectionId = 'basic' | 'experience' | 'education' | 'skills' | 'resume' | 'preview';
 
 export interface ProfileSection {

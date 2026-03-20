@@ -19,7 +19,8 @@ interface ProfileEditorProps {
     experience: Experience[];
     education: Education[];
     skills: Skill[];
-    resumes: Resume[];
+    // ✅ FIX 1: 'resumes' array hata kar 'resume' object kar diya
+    resume?: Resume | null; 
   }
 }
 
@@ -41,7 +42,9 @@ export default function ProfileEditor({ initialData }: ProfileEditorProps) {
   const [experience, setExperience] = useState<Experience[]>(initialData.experience);
   const [education, setEducation] = useState<Education[]>(initialData.education);
   const [skills, setSkills] = useState<Skill[]>(initialData.skills);
-  const [resumes, setResumes] = useState<Resume[]>(initialData.resumes);
+  
+  // ✅ FIX 2: State array ki jagah object/null le rahi hai
+  const [resume, setResume] = useState<Resume | null>(initialData.resume || null);
   
   const [completion, setCompletion] = useState(0);
 
@@ -56,9 +59,12 @@ export default function ProfileEditor({ initialData }: ProfileEditorProps) {
     if (experience.length > 0) score += 30;
     if (education.length > 0) score += 15;
     if (skills.length > 0) score += 20;
-    if (resumes.some(r => r.is_active)) score += 15;
+    
+    // ✅ FIX 3: .some() error solved! Ab ye direct object check kar raha hai
+    if (resume && resume.is_active) score += 15;
+    
     setCompletion(score);
-  }, [basicInfo, experience, education, skills, resumes]);
+  }, [basicInfo, experience, education, skills, resume]); // ✅ FIX 4: Dependency update ho gayi
 
   useEffect(() => {
     calculateCompletion();
@@ -79,9 +85,11 @@ export default function ProfileEditor({ initialData }: ProfileEditorProps) {
       case 'skills':
         return <SkillsSection data={skills} onSave={setSkills} />;
       case 'resume':
-        return <ResumeSection data={resumes} onSave={setResumes} />;
+        // ✅ FIX 5: Naye ResumeSection ko match kar raha hai
+        return <ResumeSection data={resume} onSave={setResume} />;
       case 'preview':
-        return <PreviewSection profile={{ basicInfo, experience, education, skills, resumes }} />;
+        // ✅ FIX 6: Preview ko bhi update kar diya
+        return <PreviewSection profile={{ basicInfo, experience, education, skills, resume }} />;
       default:
         return null;
     }

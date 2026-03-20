@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Edit, Trash2, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { SectionCard } from './SectionCard';
-import { saveExperience } from '@/lib/mockApi';
+import { candidateApi } from '@/apis/user/route';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 
@@ -40,7 +40,7 @@ const experienceSchema = z.object({
 
 type ExperienceFormData = z.infer<typeof experienceSchema>;
 
-const ExperienceForm = ({ experience, onSave, closeDialog }: { experience?: Experience, onSave: (data: Experience) => void, closeDialog: () => void }) => {
+const ExperienceForm = ({ experience, onSave, closeDialog }: { experience?: Experience, onSave: (data: any) => void, closeDialog: () => void }) => {
   const form = useForm<ExperienceFormData>({
     resolver: zodResolver(experienceSchema),
     defaultValues: experience ? {
@@ -48,8 +48,9 @@ const ExperienceForm = ({ experience, onSave, closeDialog }: { experience?: Expe
       designation: experience.designation,
       employment_type: experience.employment_type || '',
       location: experience.location || '',
-      start_date: format(new Date(experience.start_date), 'yyyy-MM-dd'),
-      end_date: experience.end_date ? format(new Date(experience.end_date), 'yyyy-MM-dd') : '',
+      // ✅ YYYY-MM-DD format setup for default values
+      start_date: experience.start_date ? experience.start_date.split('T')[0] : '',
+      end_date: experience.end_date ? experience.end_date.split('T')[0] : '',
       is_current: experience.is_current,
       description: experience.description || '',
     } : { is_current: false },
@@ -58,13 +59,38 @@ const ExperienceForm = ({ experience, onSave, closeDialog }: { experience?: Expe
   const isCurrent = form.watch('is_current');
 
   const handleSubmit = (values: ExperienceFormData) => {
-    const newExperience = {
-      ...values,
-      id: experience?.id || Date.now(),
-      start_date: new Date(values.start_date).toISOString(),
-      end_date: values.end_date ? new Date(values.end_date).toISOString() : null
+    // 1. Clean up the payload for the backend
+    const payload: any = {
+      company_name_text: values.company_name_text,
+      designation: values.designation,
+      start_date: values.start_date.split('T')[0], // ✅ Strictly YYYY-MM-DD
+      is_current: values.is_current,
     };
-    onSave(newExperience);
+
+    // 2. End Date Logic (If current, strictly send null)
+    payload.end_date = values.is_current ? null : (values.end_date ? values.end_date.split('T')[0] : null);
+
+    // 3. Optional fields (It is best practice to send null instead of empty strings)
+    payload.location = values.location?.trim() ? values.location : null;
+    payload.description = values.description?.trim() ? values.description : null;
+
+    // 4. Employment Type Formatting for Django (e.g., "Full-time" -> "FULL_TIME")
+    if (values.employment_type?.trim()) {
+      payload.employment_type = values.employment_type
+                                      .trim()
+                                      .toUpperCase()
+                                      .replace(/-/g, '_')
+                                      .replace(/ /g, '_');
+    } else {
+      payload.employment_type = null;
+    }
+
+    // 5. Send ID only when Updating (Editing) an existing record
+    if (experience?.id) {
+      payload.id = experience.id;
+    }
+
+    onSave(payload);
     closeDialog();
   }
 
@@ -103,7 +129,7 @@ const ExperienceForm = ({ experience, onSave, closeDialog }: { experience?: Expe
           <FormField name="employment_type" control={form.control} render={({ field }) => (
             <FormItem>
               <FormLabel>Employment Type</FormLabel>
-              <FormControl><Input placeholder="e.g., Full-time" {...field} /></FormControl>
+              <FormControl><Input placeholder="e.g., Full Time" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
@@ -143,26 +169,37 @@ export default function ExperienceSection({ data, onSave }: ExperienceSectionPro
   const [editingExperience, setEditingExperience] = useState<Experience | undefined>();
   const { toast } = useToast();
 
-  const handleSave = (experience: Experience) => {
-    let newData: Experience[];
-    if (data.find(e => e.id === experience.id)) {
-      newData = data.map(e => e.id === experience.id ? experience : e);
-    } else {
-      newData = [...data, experience];
+  const handleSave = async (payloadData: any) => {
+    try {
+      let saved: Experience;
+      
+      // ✅ If ID is present, hit the Update API
+      if (payloadData.id) {
+        saved = await candidateApi.updateExperience(payloadData.id, payloadData);
+        onSave(data.map(e => e.id === payloadData.id ? saved : e));
+      } 
+      // ✅ If no ID is present, hit the Create API (No fake IDs sent to the backend)
+      else {
+        saved = await candidateApi.createExperience(payloadData);
+        onSave([...data, saved]);
+      }
+      
+      toast({ title: "Experience Saved Successfully!" });
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Failed to save experience", variant: "destructive" });
     }
-    onSave(newData);
-    saveExperience(newData).then(() => {
-        toast({ title: "Experience Saved" });
-    });
   };
 
-  const handleDelete = (id: number) => {
-    const newData = data.filter(e => e.id !== id);
-    onSave(newData);
-    saveExperience(newData).then(() => {
-        toast({ title: "Experience Deleted", variant: "destructive" });
-    });
-  }
+  const handleDelete = async (id: number) => {
+    try {
+      await candidateApi.deleteExperience(id);
+      onSave(data.filter(e => e.id !== id));
+      toast({ title: "Experience Deleted", variant: "destructive" });
+    } catch (error) {
+      toast({ title: "Failed to delete experience", variant: "destructive" });
+    }
+  };
 
   const openDialog = (exp?: Experience) => {
     setEditingExperience(exp);
@@ -198,7 +235,7 @@ export default function ExperienceSection({ data, onSave }: ExperienceSectionPro
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-lg">{exp.designation}</CardTitle>
-                  <CardDescription>{exp.company_name_text} &middot; {exp.employment_type}</CardDescription>
+                  <CardDescription>{exp.company_name_text} &middot; {exp.employment_type?.replace(/_/g, ' ')}</CardDescription>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="ghost" size="icon" onClick={() => openDialog(exp)}>

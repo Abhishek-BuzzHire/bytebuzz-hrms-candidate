@@ -1,17 +1,54 @@
-import { useState, useEffect } from 'react';
-import * as api from '@/lib/api/jobs';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { jobsApi } from '@/apis/user';
+//import { Job, Application, SavedJob } from '@/lib/types/job';
 import { Job, Application, SavedJob } from '@/lib/types/job';
+interface JobFilters {
+  location?: string;
+  experience?: number;
+}
 
-export function useActiveJobs() {
+// ✅ Simple in-memory cache
+const cache: Record<string, any> = {};
+
+export function useActiveJobs(filters?: JobFilters) {
   const [data, setData] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const filtersKey = JSON.stringify(filters ?? {});
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    api.getActiveJobs().then(jobs => {
-      setData(jobs);
+    // ✅ Cache check — pehle se data hai toh API call mat karo
+    if (cache[filtersKey]) {
+      setData(cache[filtersKey]);
       setLoading(false);
-    });
-  }, []);
+      return;
+    }
+
+    // ✅ Previous request cancel karo
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+    abortRef.current = new AbortController();
+
+    setLoading(true);
+    jobsApi.getJobs(filters)
+      .then(res => {
+        const jobsArray = res && res.results ? res.results : (Array.isArray(res) ? res : []);
+        cache[filtersKey] = jobsArray; // ✅ Cache mein save karo
+        setData(jobsArray);
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error("Jobs fetch error:", err);
+          setData([]);
+        }
+      })
+      .finally(() => setLoading(false));
+
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, [filtersKey]);
 
   return { data, loading };
 }
@@ -19,17 +56,34 @@ export function useActiveJobs() {
 export function useJobDetails(id: number | null) {
   const [data, setData] = useState<Job | null>(null);
   const [loading, setLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!id) {
-      setData(null);
+    if (!id) { setData(null); return; }
+
+    // ✅ Cache check
+    const cacheKey = `job_${id}`;
+    if (cache[cacheKey]) {
+      setData(cache[cacheKey]);
+      setLoading(false);
       return;
     }
+
+    if (abortRef.current) abortRef.current.abort();
+    abortRef.current = new AbortController();
+
     setLoading(true);
-    api.getJobById(id).then(job => {
-      setData(job || null);
-      setLoading(false);
-    });
+    jobsApi.getJobDetail(id)
+      .then(job => {
+        cache[cacheKey] = job;
+        setData(job || null);
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') setData(null);
+      })
+      .finally(() => setLoading(false));
+
+    return () => { abortRef.current?.abort(); };
   }, [id]);
 
   return { data, loading };
@@ -38,51 +92,78 @@ export function useJobDetails(id: number | null) {
 export function useSavedJobs() {
   const [data, setData] = useState<SavedJob[]>([]);
   const [loading, setLoading] = useState(true);
+  const isFetching = useRef(false); // ✅ Duplicate call rokne ke liye
 
-  const fetch = () => {
-    api.getSavedJobs().then(jobs => {
-      setData(jobs);
-      setLoading(false);
-    });
-  };
+  const fetchSaved = useCallback(() => {
+    if (isFetching.current) return; // ✅ Already fetching hai toh skip karo
+    isFetching.current = true;
 
-  useEffect(() => {
-    fetch();
+    jobsApi.getSavedJobs()
+      .then(res => {
+        const savedArray = res && res.results ? res.results : (Array.isArray(res) ? res : []);
+        setData(savedArray);
+      })
+      .catch(() => setData([]))
+      .finally(() => {
+        setLoading(false);
+        isFetching.current = false;
+      });
   }, []);
 
-  const toggleSave = async (job: Job) => {
-    const isSaved = data.some(s => s.jobId === job.id);
-    if (isSaved) {
-      await api.unsaveJob(job.id);
-    } else {
-      await api.saveJob(job);
-    }
-    fetch();
-  };
+  useEffect(() => { fetchSaved(); }, [fetchSaved]);
 
-  return { data, loading, toggleSave, refetch: fetch };
+  const toggleSave = useCallback(async (job: any) => {
+    try {
+      const jobId = typeof job === 'object' ? job.id : job;
+      if (!jobId) return;
+      await jobsApi.saveJob(jobId);
+      // ✅ Cache invalidate karo
+      delete cache['saved_jobs'];
+      fetchSaved();
+    } catch (error) {
+      console.error("Toggle save error:", error);
+    }
+  }, [fetchSaved]);
+
+  return { data, loading, toggleSave, refetch: fetchSaved };
 }
 
 export function useApplications() {
   const [data, setData] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const isFetching = useRef(false); // ✅ Duplicate call rokne ke liye
 
-  const fetch = () => {
-    api.getApplications().then(apps => {
-      setData(apps);
-      setLoading(false);
-    });
-  };
+  const fetchApps = useCallback(() => {
+    if (isFetching.current) return; // ✅ Already fetching hai toh skip karo
+    isFetching.current = true;
 
-  useEffect(() => {
-    fetch();
+    jobsApi.getApplications()
+      .then(res => {
+        const appsArray = res && res.results ? res.results : (Array.isArray(res) ? res : []);
+        setData(appsArray);
+      })
+      .catch(() => setData([]))
+      .finally(() => {
+        setLoading(false);
+        isFetching.current = false;
+      });
   }, []);
 
-  const apply = async (jobId: number, formData: any) => {
-    const newApp = await api.applyJob(jobId, formData);
-    fetch();
-    return newApp;
-  };
+  useEffect(() => { fetchApps(); }, [fetchApps]);
 
-  return { data, loading, apply, refetch: fetch };
+  const apply = useCallback(async (jobId: number, formData: any) => {
+    try {
+      const newApp = await jobsApi.applyJob(jobId, formData);
+      fetchApps();
+      return newApp;
+    } catch (error) {
+      console.error("Apply job error:", error);
+      throw error;
+    }
+  }, [fetchApps]);
+
+  return { data, loading, apply, refetch: fetchApps };
 }
+
+
+

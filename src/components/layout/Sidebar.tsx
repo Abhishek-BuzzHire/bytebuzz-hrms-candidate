@@ -19,6 +19,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import ProfileSidebarStepper from '@/components/profile/ProfileSidebarStepper';
+import Image from "next/image";
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -39,12 +40,14 @@ export default function Sidebar({ completion = 0 }: { completion: number }) {
   return (
     <aside className="w-64 h-screen bg-white border-r flex flex-col fixed left-0 top-0 z-40">
       <div className="p-6">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Briefcase className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-bold tracking-tight">BuzzHire</span>
-        </div>
+  <div className="flex items-center mb-8">
+    <Image
+      src="/images/logo.png"
+      alt="BuzzHire Logo"
+      width={160}
+      height={40}
+    />
+  </div>
 
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -56,28 +59,34 @@ export default function Sidebar({ completion = 0 }: { completion: number }) {
         </div>
 
         <nav className="space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                pathname === item.href
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-              )}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  isActive
+                    ? "text-white"
+                    : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                )}
+                style={isActive ? {
+                  background: 'linear-gradient(135deg,#1d4ed8,#2563eb)',
+                  color: 'white',
+                } : {}}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
       <div className="mt-auto px-6 pb-6 space-y-6">
 
         <ProfileSidebarStepper completion={completion} />
-
 
         <nav className="space-y-1">
           {secondaryItems.map((item) => (
@@ -95,7 +104,7 @@ export default function Sidebar({ completion = 0 }: { completion: number }) {
         <div className="pt-4 border-t flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">JD</AvatarFallback>
+              <AvatarFallback className="text-white text-xs font-bold" style={{background:'linear-gradient(135deg,#1d4ed8,#2563eb)'}}>JD</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
               <span className="text-sm font-semibold truncate max-w-[100px]">Jane Doe</span>

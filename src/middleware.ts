@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Simple JWT decode (no verify; verification is done by API). Only read payload for role.
 function getPayloadFromToken(
   token: string
 ): { id?: string; username?: string; role?: string } | null {
@@ -25,10 +24,10 @@ const PROTECTED_PATHS = ["/dashboard"];
 const LOGIN_PATH = "/login";
 const SIGN_UP_PATH = "/sign-up";
 const DASHBOARD_HOME = "/dashboard";
-const origin = "https://candidate.bytebuzz.in"; // update if different
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const origin = request.nextUrl.origin; // ✅ Automatically localhost:3000 ya production URL lega
 
   const token = request.cookies.get("access")?.value;
   const payload = token ? getPayloadFromToken(token) : null;
@@ -39,7 +38,6 @@ export function middleware(request: NextRequest) {
 
   const isAuthPath = pathname === LOGIN_PATH || pathname === SIGN_UP_PATH;
 
-  // No valid token → redirect to login if accessing protected routes
   if (!token || !payload) {
     if (isProtectedPath) {
       const returnUrl = `${pathname}${request.nextUrl.search}`;
@@ -50,7 +48,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Valid token → redirect away from auth pages to dashboard
   if (isAuthPath) {
     return NextResponse.redirect(new URL(DASHBOARD_HOME, origin));
   }

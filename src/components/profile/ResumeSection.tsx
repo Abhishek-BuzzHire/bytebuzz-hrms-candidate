@@ -1,22 +1,22 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import type { Resume } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { UploadCloud, FileText, Trash2, CheckCircle2 } from 'lucide-react';
+import { UploadCloud, FileText, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
 import { SectionCard } from './SectionCard';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { uploadResume } from '@/lib/mockApi';
+import { candidateApi } from '@/apis/user/route';
 import { Badge } from '@/components/ui/badge';
 
 interface ResumeSectionProps {
-  data: Resume[];
-  onSave: (data: Resume[]) => void;
+  // ✅ FIX: Ab ye array nahi, sirf single object (ya null) accept karega
+  data: Resume | null; 
+  onSave: (data: Resume | null) => void;
 }
 
 export default function ResumeSection({ data, onSave }: ResumeSectionProps) {
@@ -24,9 +24,10 @@ export default function ResumeSection({ data, onSave }: ResumeSectionProps) {
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
-  const handleFileChange = (files: FileList | null) => {
+  const handleFileChange = async (files: FileList | null) => {
     if (files && files.length > 0) {
       const file = files[0];
+      
       if (file.type !== "application/pdf") {
         toast({
           title: "Invalid File Type",
@@ -35,131 +36,121 @@ export default function ResumeSection({ data, onSave }: ResumeSectionProps) {
         });
         return;
       }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
       setIsUploading(true);
-      uploadResume({ fileName: file.name }).then(() => {
-        const newResume: Resume = {
-          id: Date.now(),
-          file_name: file.name,
-          file_url: `/resumes/${file.name}`,
-          is_active: data.length === 0,
-          uploaded_at: new Date().toISOString(),
-        };
-        const newData = [...data, newResume];
-        if (newData.filter(r => r.is_active).length === 0) {
-            newData[0].is_active = true;
-        }
-        onSave(newData);
-        setIsUploading(false);
+      try {
+        const newResume = await candidateApi.uploadResume(formData);
+        
+        // ✅ FIX: List/Array ki jagah direct naya resume object bhej rahe hain
+        onSave(newResume); 
+        
         toast({
-          title: "Upload Successful",
-          description: `${file.name} has been uploaded.`,
+          title: "Resume Uploaded",
+          description: `${file.name} is now your active resume.`,
         });
-      });
+      } catch (error) {
+        toast({
+          title: "Upload Failed",
+          description: "Could not upload resume to server.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
-  const handleSetActive = (id: number) => {
-    const newData = data.map(r => ({ ...r, is_active: r.id === id }));
-    onSave(newData);
-  };
-
-  const handleDelete = (id: number) => {
-    const newData = data.filter(r => r.id !== id);
-    if (newData.length > 0 && !newData.some(r => r.is_active)) {
-      newData[0].is_active = true;
+  const handleDelete = async () => {
+    try {
+      await candidateApi.deleteResume();
+      // ✅ FIX: Delete hone par data ko null kar diya
+      onSave(null); 
+      toast({ title: "Resume deleted", variant: "destructive" });
+    } catch (error) {
+      toast({ title: "Failed to delete", variant: "destructive" });
     }
-    onSave(newData);
-    toast({
-        title: "Resume Deleted",
-        variant: "destructive",
-    })
   };
-  
-  const handleDragEnter = (e: React.DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-  const handleDragLeave = (e: React.DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    handleFileChange(e.dataTransfer.files);
-  };
-
 
   return (
     <SectionCard
       title="Resume"
-      description="Upload and manage your resume. Only one can be active at a time."
+      description="Upload your professional resume in PDF format (Max 10MB)."
     >
       <div className="space-y-6">
+        {/* Upload Area */}
         <label
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
+          onDragEnter={() => setIsDragging(true)}
+          onDragLeave={() => setIsDragging(false)}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            if (e.dataTransfer.files) handleFileChange(e.dataTransfer.files);
+          }}
           className={cn(
-            "flex justify-center w-full rounded-lg border-2 border-dashed border-muted-foreground/25 px-6 py-10 text-center transition-colors",
-            isDragging && "border-primary bg-primary/10"
+            "flex justify-center w-full rounded-lg border-2 border-dashed border-muted-foreground/25 px-6 py-10 text-center transition-all cursor-pointer",
+            isDragging ? "border-primary bg-primary/5 scale-[1.01]" : "hover:border-primary/50"
           )}
         >
           <div className="text-center">
-            <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
-            <div className="mt-4 flex text-sm leading-6 text-muted-foreground">
-              <span className="relative cursor-pointer rounded-md font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:text-primary/80">
-                <span>Upload a file</span>
-                <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={(e) => handleFileChange(e.target.files)} accept=".pdf" disabled={isUploading}/>
-              </span>
+            {isUploading ? (
+              <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" />
+            ) : (
+              <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+            )}
+            <div className="mt-4 flex text-sm leading-6 text-muted-foreground justify-center">
+              <span className="font-semibold text-primary hover:underline">Upload a file</span>
               <p className="pl-1">or drag and drop</p>
             </div>
-            <p className="text-xs leading-5 text-muted-foreground">PDF up to 10MB</p>
+            <input 
+                type="file" 
+                className="sr-only" 
+                onChange={(e) => handleFileChange(e.target.files)} 
+                accept=".pdf" 
+                disabled={isUploading}
+            />
+            <p className="text-xs text-muted-foreground mt-1">PDF up to 10MB</p>
           </div>
         </label>
 
-        {isUploading && (
-          <div className="flex items-center justify-center text-sm text-muted-foreground">
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Uploading...
+        {/* ✅ FIX: List .map() hata diya. Direct data show karega */}
+        {data && data.file_name && (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Uploaded Resume</Label>
+            <Card className="p-4 flex items-center justify-between border-l-4 border-l-primary">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <Label className="font-semibold block">{data.file_name}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {data.file_size_bytes ? `${(data.file_size_bytes / 1024 / 1024).toFixed(2)} MB • ` : ""}
+                    Uploaded on {format(new Date(data.uploaded_at || new Date()), 'MMM d, yyyy')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {/* Active Badge sirf dikhane ke liye rakha hai, button nikal diya */}
+                {data.is_active && (
+                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none">
+                    <CheckCircle2 className="h-3 w-3 mr-1" /> Active
+                  </Badge>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-destructive hover:bg-destructive/10"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </Card>
           </div>
-        )}
-
-        {data.length > 0 && (
-          <RadioGroup value={data.find(r => r.is_active)?.id.toString()} onValueChange={(val) => handleSetActive(Number(val))}>
-            <div className="space-y-2">
-                <Label>Uploaded Resumes</Label>
-              {data.map(resume => (
-                <Card key={resume.id} className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <RadioGroupItem value={resume.id.toString()} id={`r-${resume.id}`} />
-                    <FileText className="h-6 w-6 text-muted-foreground" />
-                    <div>
-                      <Label htmlFor={`r-${resume.id}`} className="font-semibold cursor-pointer">{resume.file_name}</Label>
-                      <p className="text-sm text-muted-foreground">Uploaded on {format(new Date(resume.uploaded_at), 'MMM d, yyyy')}</p>
-                    </div>
-                  </div>
-                  <div className='flex items-center gap-2'>
-                    {resume.is_active && <Badge variant="outline" className='text-green-600 border-green-600'><CheckCircle2 className='h-3 w-3 mr-1'/>Active</Badge>}
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(resume.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </RadioGroup>
         )}
       </div>
     </SectionCard>
