@@ -3,10 +3,7 @@
 import React from 'react';
 import { Job } from '@/lib/types/job';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Briefcase, Clock, Building2, CheckCircle2, Bookmark, Share2 } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { Briefcase, Bookmark, CheckCircle2, ExternalLink } from 'lucide-react';
 
 interface JobDetailsProps {
   job: Job | null;
@@ -14,14 +11,26 @@ interface JobDetailsProps {
   onApply: (job: Job) => void;
   onSave: (job: Job) => void;
   isSaved?: boolean;
-  isApplied?: boolean; // ✅ NAYA: isApplied prop add kiya
+  isApplied?: boolean;
+}
+
+function parseSkills(skills: any[]): string[] {
+  if (!skills || skills.length === 0) return [];
+  const result: string[] = [];
+  skills.forEach((skillObj) => {
+    const raw = typeof skillObj === 'string' ? skillObj : (skillObj?.skill_name || skillObj?.name || '');
+    const parts = raw.split(/\s+[Oo]r\s+/);
+    parts.forEach((p: string) => { if (p.trim()) result.push(p.trim()); });
+  });
+  return result;
 }
 
 export default function JobDetails({ job, loading, onApply, onSave, isSaved, isApplied }: JobDetailsProps) {
+
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center p-12 bg-white rounded-xl border">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="h-full flex items-center justify-center bg-white rounded-xl border">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
       </div>
     );
   }
@@ -29,153 +38,124 @@ export default function JobDetails({ job, loading, onApply, onSave, isSaved, isA
   if (!job) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-12 text-center bg-white rounded-xl border border-dashed">
-        <div className="w-16 h-16 bg-secondary/50 rounded-full flex items-center justify-center mb-4">
-          <Briefcase className="w-8 h-8 text-muted-foreground" />
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+          <Briefcase className="w-8 h-8 text-gray-400" />
         </div>
-        <h3 className="text-lg font-semibold">Select a job to view details</h3>
-        <p className="text-sm text-muted-foreground max-w-xs">
-          Browse through active job listings on the left and select one to see more information.
+        <h3 className="text-lg font-semibold text-gray-700">Select a job to view details</h3>
+        <p className="text-sm text-gray-400 max-w-xs mt-1">
+          Browse listings on the left and select one to see full details.
         </p>
       </div>
     );
   }
 
-  // ✅ Edge Case: Experience ko months se years mein convert karna
-  const experienceYears = job.min_experience_months 
-    ? Math.round(job.min_experience_months / 12) 
+  const experienceYears = job.min_experience_months
+    ? Math.round(job.min_experience_months / 12)
     : 0;
 
+  const skills = parseSkills(job.skills as any[]);
+
   return (
-    <div className="h-full overflow-y-auto space-y-6 min-w-0-full">
-      <Card className="border-none shadow-sm">
-        <CardHeader className="pb-0">
-          <div className="flex justify-between items-start gap-4 mb-4">
-            <div className="flex gap-4">
-              <div className="w-16 h-16 bg-secondary rounded-lg flex items-center justify-center shrink-0">
-                <Building2 className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <div className="space-y-1">
-                <CardTitle className="text-2xl font-bold">{job.title}</CardTitle>
-                <div className="flex items-center gap-2 text-primary font-medium flex-wrap">
-                  {/* ✅ Fixed: company_name matching backend */}
-                  <span>{job.company_name}</span>
-                  <Badge variant="outline" className="text-[10px] py-0 h-4 border-primary text-primary">Verified</Badge>
-                  
-                  {/* ✅ NAYA: Agar applied hai, toh company name ke aage badge dikhao */}
-                  {isApplied && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-700 border-none flex items-center gap-1 px-2 py-0 h-5 text-[10px]">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Applied
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon" className="w-10 h-10">
-                <Share2 className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className={isSaved ? "text-primary border-primary bg-primary/5" : "w-10 h-10"}
-                onClick={() => onSave(job)}
+    <div className="h-full overflow-y-auto bg-white rounded-xl border">
+
+      {/* ── Header ── */}
+      <div className="px-6 pt-5 pb-4 border-b">
+
+        {/* Within 1 day tag */}
+       
+
+        {/* Logo + Title */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 flex items-center justify-center shrink-0" style={{ background: '#e2e8f0', borderRadius: 12 }}>
+            <Briefcase className="w-6 h-6 text-slate-500" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
+            <p className="text-sm text-gray-500">{job.company_name}</p>
+          </div>
+        </div>
+
+        {/* ✅ Apply + Save — No Interested button removed */}
+        <div className="flex items-center gap-3 mb-4">
+          <Button
+            className="px-6 font-semibold rounded-md flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => onApply(job)}
+            disabled={isApplied}
+          >
+            {isApplied ? (
+              <><CheckCircle2 className="w-4 h-4" /> Applied</>
+            ) : (
+              <><ExternalLink className="w-4 h-4" /> Apply</>
+            )}
+          </Button>
+
+          <Button
+            variant="outline"
+            className={`px-5 font-semibold rounded-md flex items-center gap-2 ${isSaved ? 'border-blue-500 text-blue-600' : 'border-gray-300 text-gray-700'}`}
+            onClick={() => onSave(job)}
+          >
+            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-blue-600 text-blue-600' : ''}`} />
+            {isSaved ? 'Saved' : 'Save'}
+          </Button>
+        </div>
+
+        {/* Meta tags — orange dots */}
+        <div className="flex flex-wrap gap-3">
+          <span className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+            {job.work_mode?.replace(/_/g, ' ')} · {job.location}
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+            {experienceYears} Years of Experience
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+            {job.employment_type?.replace(/_/g, ' ')}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Must Have Skills ── */}
+      {skills.length > 0 && (
+        <div className="px-6 py-4 border-b">
+          <h2 className="text-base font-bold text-gray-900 mb-3">Must Have Skills:</h2>
+          <div className="flex flex-wrap gap-2">
+            {skills.map((skillName, idx) => (
+              <span
+                key={idx}
+                className="px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200"
               >
-                <Bookmark className={isSaved ? "w-4 h-4 fill-current" : "w-4 h-4"} />
-              </Button>
-            </div>
+                {skillName}
+              </span>
+            ))}
           </div>
+        </div>
+      )}
 
-          <div className="flex flex-wrap gap-6 py-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Location</span>
-                {/* ✅ Fixed: work_mode snake_case handle kiya */}
-                <span className="text-sm font-semibold">{job.location} ({job.work_mode?.replace('_', ' ')})</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                <Briefcase className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Experience</span>
-                <span className="text-sm font-semibold">{experienceYears} {experienceYears <= 1 ? 'Year' : 'Years'}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Employment</span>
-                {/* ✅ Fixed: employment_type snake_case handle kiya */}
-                <span className="text-sm font-semibold">{job.employment_type?.replace('_', ' ')}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex gap-4 py-4">
-             {/* ✅ NAYA: Button check karega ki applied hai ya nahi, aur us hisaab se disable hoga */}
-             <Button 
-               className={`flex-1 py-6 text-lg font-bold shadow-lg ${!isApplied ? 'shadow-primary/20' : ''}`}
-               onClick={() => onApply(job)}
-               disabled={isApplied}
-               variant={isApplied ? "secondary" : "default"}
-             >
-               {isApplied ? "Already Applied" : "Apply Now"}
-             </Button>
-             
-             <Button variant="secondary" className="px-8 py-6 text-lg font-semibold">
-               Not Interested
-             </Button>
-          </div>
-        </CardHeader>
+      {/* ── Job Description ── */}
+      {job.description && (
+        <div className="px-6 py-4 border-b">
+          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+            {job.description}
+          </p>
+        </div>
+      )}
 
-        <Separator className="my-6 mx-6" />
-
-        <CardContent className="space-y-8">
-          <section>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Must Have Skills</h4>
-            <div className="flex flex-wrap gap-2">
-              {/* ✅ Fixed: Object structure checking (skill_name) */}
-              {job.skills?.map((skillObj: any, idx: number) => {
-                const skillName = typeof skillObj === 'string' ? skillObj : skillObj.skill_name;
-                return (
-                  <span key={idx} className="px-3 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
-                    {skillName}
-                  </span>
-                )
-              })}
-            </div>
-          </section>
-
-          <section>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Job Description</h4>
-            <p className="text-muted-foreground leading-relaxed">
-              {job.description}
-            </p>
-          </section>
-
-          {/* ✅ Fixed: Section logic to handle missing responsibilities */}
-          {job.responsibilities && job.responsibilities.length > 0 && (
-            <section>
-              <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Key Responsibilities</h4>
-              <ul className="space-y-3">
-                {job.responsibilities.map((resp, idx) => (
-                  <li key={idx} className="flex gap-3 text-muted-foreground text-sm">
-                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                    <span>{resp}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-        </CardContent>
-      </Card>
+      {/* ── Responsibilities ── */}
+      {job.responsibilities && job.responsibilities.length > 0 && (
+        <div className="px-6 py-4">
+          <h2 className="text-base font-bold text-gray-900 mb-3">Key Responsibilities</h2>
+          <ul className="space-y-2">
+            {job.responsibilities.map((resp, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                {resp}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

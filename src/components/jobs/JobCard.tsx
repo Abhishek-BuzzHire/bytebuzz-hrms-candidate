@@ -3,9 +3,7 @@
 import React from 'react';
 import { Job } from '@/lib/types/job';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-// ✅ Added CheckCircle2 for the applied icon
-import { MapPin, Briefcase, Clock, Bookmark, CheckCircle2 } from 'lucide-react'; 
+import { MapPin, Briefcase, Clock, Bookmark, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -15,7 +13,7 @@ interface JobCardProps {
   onClick?: () => void;
   onSave?: (e: React.MouseEvent) => void;
   isSaved?: boolean;
-  isApplied?: boolean; // ✅ Added isApplied prop
+  isApplied?: boolean;
 }
 
 const SKILL_COLORS: Record<string, { bg: string; text: string }> = {
@@ -64,59 +62,68 @@ const FALLBACK_PALETTE = [
 ];
 
 function getSkillStyle(skill: string, idx: number) {
-  return SKILL_COLORS[skill] ?? FALLBACK_PALETTE[idx % FALLBACK_PALETTE.length];
+  return SKILL_COLORS[skill.trim()] ?? FALLBACK_PALETTE[idx % FALLBACK_PALETTE.length];
+}
+
+function parseSkills(skills: any[]): string[] {
+  if (!skills || skills.length === 0) return [];
+  const result: string[] = [];
+  skills.forEach((skillObj) => {
+    const raw = typeof skillObj === 'string' ? skillObj : (skillObj?.skill_name || skillObj?.name || '');
+    const parts = raw.split(/\s+[Oo]r\s+/);
+    parts.forEach((p: string) => { if (p.trim()) result.push(p.trim()); });
+  });
+  return result;
 }
 
 export default function JobCard({ job, isActive, onClick, onSave, isSaved, isApplied }: JobCardProps) {
-  
-  // ✅ Data Validation: Months ko Years mein convert karna (Edge Case Handling)
-  const experienceYears = job.min_experience_months 
-    ? Math.round(job.min_experience_months / 12) 
+  const experienceYears = job.min_experience_months
+    ? Math.round(job.min_experience_months / 12)
     : 0;
+
+  const skills = parseSkills(job.skills as any[]);
 
   return (
     <Card
-      // ✅ Added a subtle opacity change if the job is already applied
-      className={cn("cursor-pointer overflow-hidden transition-opacity", isApplied && "opacity-80")}
+      className={cn("cursor-pointer overflow-hidden transition-all")}
       onClick={onClick}
       style={{
-        background: isApplied ? '#fafafa' : 'white', // Slight background change for applied jobs
-        backgroundColor: isApplied ? '#fafafa' : 'white',
-        borderRadius: 14,
+        backgroundColor: isActive ? '#eff6ff' : 'white',
+        borderRadius: 12,
+        // ✅ Charo taraf same border — no left strip
         border: isActive ? '1.5px solid #2563eb' : '1.5px solid #e5e7eb',
-        boxShadow: isActive
-          ? '0 4px 16px rgba(0,0,0,0.10)'
-          : '0 1px 6px rgba(0,0,0,0.06)',
-        transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
+        boxShadow: isActive ? '0 4px 16px rgba(37,99,235,0.10)' : '0 1px 4px rgba(0,0,0,0.05)',
         transition: 'all 0.2s ease',
+        opacity: isApplied ? 0.85 : 1,
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.10)';
-        (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
-        (e.currentTarget as HTMLElement).style.borderColor = '#2563eb';
+        if (!isActive) {
+          (e.currentTarget as HTMLElement).style.backgroundColor = '#f8faff';
+          (e.currentTarget as HTMLElement).style.borderColor = '#93c5fd';
+        }
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.boxShadow = isActive
-          ? '0 4px 16px rgba(0,0,0,0.10)'
-          : '0 1px 6px rgba(0,0,0,0.06)';
-        (e.currentTarget as HTMLElement).style.transform = isActive ? 'translateY(-1px)' : 'translateY(0)';
-        (e.currentTarget as HTMLElement).style.borderColor = isActive ? '#2563eb' : '#e5e7eb';
+        if (!isActive) {
+          (e.currentTarget as HTMLElement).style.backgroundColor = 'white';
+          (e.currentTarget as HTMLElement).style.borderColor = '#e5e7eb';
+        }
       }}
     >
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
+        {/* Title + Bookmark */}
+        <div className="flex justify-between items-start gap-2 mb-2">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm shrink-0"
-              style={{ background: isApplied ? 'linear-gradient(135deg,#64748b,#94a3b8)' : 'linear-gradient(135deg,#1d4ed8,#2563eb)' }}
+              className="w-11 h-11 flex items-center justify-center shrink-0"
+              style={{ background: '#e2e8f0', borderRadius: 12 }}
             >
-              <Briefcase className="w-5 h-5 text-white" />
+              <Briefcase className="w-5 h-5 text-slate-500" />
             </div>
             <div>
               <h3 className="font-bold text-sm leading-tight text-gray-900 line-clamp-1">{job.title}</h3>
-              {/* ✅ Added the Applied Badge next to the company name */}
+              {/* ✅ Applied badge LEFT mein company name ke saath */}
               <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-xs text-muted-foreground">{job.company_name}</p>
+                <p className="text-xs text-gray-500">{job.company_name}</p>
                 {isApplied && (
                   <span className="flex items-center gap-1 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-md text-[10px] font-bold">
                     <CheckCircle2 className="w-3 h-3" />
@@ -129,52 +136,46 @@ export default function JobCard({ job, isActive, onClick, onSave, isSaved, isApp
           <Button
             variant="ghost"
             size="icon"
-            className="w-8 h-8 shrink-0"
-            style={{ color: isSaved ? '#1d4ed8' : undefined }}
-            onClick={(e) => {
-              e.stopPropagation(); // Card click event ko rokne ke liye
-              onSave?.(e);
-            }}
+            className="w-8 h-8 shrink-0 text-gray-400 hover:text-blue-600"
+            onClick={(e) => { e.stopPropagation(); onSave?.(e); }}
           >
-            <Bookmark className={cn("w-4 h-4", isSaved && "fill-current text-blue-600")} />
+            <Bookmark className={cn("w-4 h-4", isSaved && "fill-blue-600 text-blue-600")} />
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <MapPin className="w-3 h-3" style={{ color: '#1d4ed8' }} />
-            <span className="truncate">{job.location}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Briefcase className="w-3 h-3" style={{ color: '#1d4ed8' }} />
-            {/* ✅ Fixed: Proper experience unit display */}
-            <span>{experienceYears} {experienceYears <= 1 ? 'Year' : 'Years'}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="w-3 h-3" style={{ color: '#1d4ed8' }} />
-            {/* ✅ Fixed: matching backend field 'employment_type' */}
-            <span className="truncate">{job.employment_type?.replace('_', ' ')}</span>
-          </div>
+        {/* Meta */}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 mb-2.5">
+          <span className="flex items-center gap-1 text-xs text-gray-500">
+            <MapPin className="w-3 h-3 text-blue-500" />
+            {job.location}
+          </span>
+          <span className="flex items-center gap-1 text-xs text-gray-500">
+            <Clock className="w-3 h-3 text-blue-500" />
+            {experienceYears} {experienceYears <= 1 ? 'Year' : 'Years'}
+          </span>
+          <span className="flex items-center gap-1 text-xs text-gray-500">
+            <Briefcase className="w-3 h-3 text-blue-500" />
+            {job.employment_type?.replace(/_/g, ' ')}
+          </span>
         </div>
 
+        {/* Skills */}
         <div className="flex flex-wrap gap-1.5">
-          {/* ✅ Fixed: Backend nested skill structure check */}
-          {job.skills?.slice(0, 3).map((skillObj, i) => {
-            // Check if skill is string or object with 'skill_name'
-            const skillName = typeof skillObj === 'string' ? skillObj : (skillObj as any).skill_name;
+          <span className="text-xs text-gray-400 self-center">Skills:</span>
+          {skills.slice(0, 4).map((skillName, i) => {
             const { bg, text } = getSkillStyle(skillName, i);
             return (
               <span
                 key={i}
-                className="px-2 py-0.5 text-[10px] font-medium rounded-full border border-transparent"
+                className="px-2 py-0.5 text-[10px] font-medium rounded-full"
                 style={{ backgroundColor: bg, color: text }}
               >
                 {skillName}
               </span>
             );
           })}
-          {job.skills && job.skills.length > 3 && (
-            <span className="text-[10px] text-muted-foreground">+{job.skills.length - 3}</span>
+          {skills.length > 4 && (
+            <span className="text-[10px] text-gray-400 self-center">+{skills.length - 4}</span>
           )}
         </div>
       </CardContent>

@@ -27,31 +27,34 @@ export default function JobsPage() {
   // ✅ Filter states
   const [showFilters, setShowFilters] = useState(false);
   const [filterLocation, setFilterLocation] = useState('');
+  const [filterMinExp, setFilterMinExp] = useState('');
   const [filterMaxExp, setFilterMaxExp] = useState('');
 
-  // ✅ Debounce — 600ms baad API call
-  const debouncedLocation = useDebounce(filterLocation, 600);
-  const debouncedMaxExp = useDebounce(filterMaxExp, 600);
+  // ✅ Debounce — 3000ms baad API call
+  const debouncedLocation = useDebounce(filterLocation, 3000);
+  const debouncedMinExp = useDebounce(filterMinExp, 3000);
+  const debouncedMaxExp = useDebounce(filterMaxExp, 3000);
 
   // ✅ Backend API filters
   const apiFilters = useMemo(() => {
     const f: any = {};
     if (debouncedLocation.trim()) f.location = debouncedLocation.trim();
+    if (debouncedMinExp !== '') f.min_experience = Number(debouncedMinExp) * 12;
     if (debouncedMaxExp !== '') f.experience = Number(debouncedMaxExp) * 12;
     return f;
-  }, [debouncedLocation, debouncedMaxExp]);
+  }, [debouncedLocation, debouncedMinExp, debouncedMaxExp]);
 
   // ✅ Backend se filtered jobs
   const { data: jobs, loading: jobsLoading } = useActiveJobs(apiFilters);
 
   const { data: selectedJob, loading: detailsLoading } = useJobDetails(selectedJobId);
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (jobs?.length > 0) {
       console.log("Job Mode from DB:", jobs[0].work_mode);
       console.log("Selected UI Mode:", activeWorkMode);
     }
-  }, [jobs, activeWorkMode]);
+  }, [jobs, activeWorkMode]);*/
 
   // ✅ Sirf search aur workMode frontend filter
   const filteredJobs = useMemo(() => {
@@ -134,9 +137,11 @@ export default function JobsPage() {
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wide">Location</label>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wide">
+                    Location
+                  </label>
                   <Input
                     placeholder="e.g., Mumbai, Bangalore..."
                     value={filterLocation}
@@ -144,9 +149,24 @@ export default function JobsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wide">Max Experience (Years)</label>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wide">
+                    Min Experience (Years)
+                  </label>
                   <Input
                     type="number"
+                    min={0}
+                    placeholder="e.g., 1"
+                    value={filterMinExp}
+                    onChange={(e) => { setFilterMinExp(e.target.value); setVisibleCount(10); }}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wide">
+                    Max Experience (Years)
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
                     placeholder="e.g., 5"
                     value={filterMaxExp}
                     onChange={(e) => { setFilterMaxExp(e.target.value); setVisibleCount(10); }}
@@ -159,6 +179,7 @@ export default function JobsPage() {
                   size="sm"
                   onClick={() => {
                     setFilterLocation('');
+                    setFilterMinExp('');
                     setFilterMaxExp('');
                     setVisibleCount(10);
                   }}

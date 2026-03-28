@@ -22,6 +22,23 @@ interface BasicInfoFormProps {
   onSave: (data: Candidate) => void;
 }
 
+// ✅ Sirf valid backend fields filter karo
+const getCleanData = (data: any, total_experience_months: number) => ({
+  full_name: data.full_name,
+  primary_email: data.primary_email,
+  primary_phone: data.primary_phone,
+  headline: data.headline,
+  current_designation: data.current_designation,
+  total_experience_months,
+  current_salary_amount: data.current_salary_amount,
+  expected_salary_amount: data.expected_salary_amount,
+  salary_currency: data.salary_currency,
+  salary_period: data.salary_period,
+  notice_period_days: data.notice_period_days,
+  ...(data.location_id ? { location_id: data.location_id } : {}),
+  ...(data.location_data ? { location_data: data.location_data } : {}),
+});
+
 export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
   const { toast } = useToast();
 
@@ -29,7 +46,6 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
   const [locations, setLocations] = useState<{ id: number; name: string; city?: string; state?: string; country?: string }[]>([]);
   const debouncedLocationQuery = useDebounce(locationQuery, 400);
   
-  // ✅ FIX: Track if user just selected from dropdown
   const [isLocationSelected, setIsLocationSelected] = useState(false);
 
   const onSaveRef = useRef(onSave);
@@ -42,7 +58,6 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
     previousDataRef.current = data;
   }, [onSave, data]);
 
-  // Search locations API call
   useEffect(() => {
     if (!debouncedLocationQuery || debouncedLocationQuery.length < 2) {
       setLocations([]);
@@ -70,27 +85,21 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
   const watchedData = form.watch();
   const debouncedData = useDebounce(watchedData, 1000);
 
-  // ✅ FIX: Autosave sirf agar location selected or other fields changed (not just typing in location)
   useEffect(() => {
     if (form.formState.isDirty) {
       const { experience_years, experience_months, ...rest } = debouncedData;
       const total_experience_months = (Number(experience_years) || 0) * 12 + (Number(experience_months) || 0);
 
-      // ✅ FIX: Check if ONLY location_text changed (typing in search box)
-      // If so, don't autosave
       const onlyLocationTextChanged = 
         Object.keys(rest).every(key => {
-          if (key === 'location_text') return true; // Skip location_text check
+          if (key === 'location_text') return true;
           return rest[key as keyof typeof rest] === previousDataRef.current[key as keyof typeof previousDataRef.current];
         });
 
-      // ✅ FIX: If only location text changed (user typing), skip autosave
       if (onlyLocationTextChanged && !isLocationSelected) {
-        console.log("⏭️  Only location_text changed (typing search box) - skipping autosave");
         return;
       }
 
-      // Reset the flag after autosave
       setIsLocationSelected(false);
 
       let updatedData: any = {
@@ -107,13 +116,12 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
         };
       }
 
-      console.log("=== AUTOSAVE DEBUG ===");
-      console.log("📤 Autosaving data:", updatedData);
-      console.log("=== END DEBUG ===");
-
       onSaveRef.current(updatedData);
 
-      candidateApi.updateProfile(updatedData)
+      // ✅ Clean data bhejo backend ko
+      const cleanData = getCleanData(updatedData, total_experience_months);
+
+      candidateApi.updateProfile(cleanData)
         .then(() => {
           toast({
             title: "Autosaved!",
@@ -151,17 +159,12 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
       };
     }
 
-    console.log("=== FORM SUBMISSION DEBUG ===");
-    console.log("1. rest keys:", Object.keys(rest));
-    console.log("2. rest.location_id:", rest.location_id);
-    console.log("3. rest.location_data:", rest.location_data);
-    console.log("4. rest.location_text:", rest.location_text);
-    console.log("5. Final submitData:", submitData);
-    console.log("=== END SUBMISSION DEBUG ===");
+    // ✅ Clean data bhejo backend ko
+    const cleanData = getCleanData(submitData, total_experience_months);
 
     try {
       onSaveRef.current(submitData);
-      await candidateApi.updateProfile(submitData);
+      await candidateApi.updateProfile(cleanData);
       toast({
         title: "Saved!",
         description: "Your basic information has been saved successfully.",
@@ -232,7 +235,6 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
               )}
             />
 
-            {/* ✅ FIX: Location Search - no autosave when typing */}
             <FormField
               control={form.control}
               name="location_text"
@@ -247,7 +249,6 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
                         onChange={(e) => {
                           setLocationQuery(e.target.value);
                           field.onChange(e.target.value);
-                          // ✅ FIX: Mark that we're just typing, not selecting
                           setIsLocationSelected(false);
                         }}
                       />
@@ -259,41 +260,17 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
                             key={loc.id}
                             className="px-4 py-2 text-sm cursor-pointer hover:bg-blue-50"
                             onClick={() => {
-                              console.log("=== LOCATION SELECT DEBUG ===");
-                              console.log("📍 Location selected:", loc);
-                              
                               const locationData = {
                                 city: loc.city || loc.name,
                                 state: loc.state || '',
                                 country: loc.country || 'India'
                               };
-                              
-                              console.log("Location data object:", locationData);
-                              
                               field.onChange(loc.name);
-                              console.log("1. Set location_text:", loc.name);
-                              
-                              if (loc.id) {
-                                form.setValue('location_id', loc.id);
-                                console.log("2. Set location_id:", loc.id);
-                              }
-                              
+                              if (loc.id) form.setValue('location_id', loc.id);
                               form.setValue('location_data', locationData);
-                              console.log("3. Set location_data:", locationData);
-                              
-                              // ✅ FIX: Mark that location was selected from dropdown
-                              // This will trigger autosave
                               setIsLocationSelected(true);
-                              
-                              console.log("✅ Form values set:", {
-                                location_text: loc.name,
-                                location_id: loc.id,
-                                location_data: locationData
-                              });
-                              
                               setLocationQuery(loc.name);
                               setLocations([]);
-                              console.log("=== END DEBUG ===");
                             }}
                           >
                             <div className="font-medium">{loc.name}</div>

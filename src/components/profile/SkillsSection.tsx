@@ -10,8 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Plus, Lightbulb, Star, Trash2, Edit } from 'lucide-react';
 import { SectionCard } from './SectionCard';
-import { mockSkillsList } from '@/lib/mockData';
-import { candidateApi } from '@/apis/user/route';
+import { candidateApi } from '@/apis/user';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -33,9 +32,9 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const { toast } = useToast();
 
-  // State to manage the skill being added/edited in the form
   const [currentSkill, setCurrentSkill] = useState<any>({
     name: '',
     skill_id: null,
@@ -44,30 +43,41 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
     is_primary: false
   });
 
-  const handleOpenAddForm = async (skillName: string) => {
-    try {
-      const searchResults = await candidateApi.searchSkills(skillName);
-      const skillId = searchResults.length > 0 ? searchResults[0].id : null;
-      
-      setCurrentSkill({
-        name: skillName,
-        skill_id: skillId,
-        proficiency: 'INTERMEDIATE',
-        years_experience: 0,
-        is_primary: false,
-        isEdit: false
-      });
-      setIsAddOpen(false);
-      setIsFormOpen(true);
-    } catch (error) {
-      toast({ title: "Error searching skill", variant: "destructive" });
+  // ✅ Backend se skills search karo
+  const handleSearch = async (query: string) => {
+    setSearch(query);
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
     }
+    try {
+      const results = await candidateApi.searchSkills(query);
+      const list = results?.results ?? results ?? [];
+      setSearchResults(list);
+    } catch {
+      setSearchResults([]);
+    }
+  };
+
+  const handleOpenAddForm = async (skillName: string, skillId?: number) => {
+    setCurrentSkill({
+      name: skillName,
+      skill_id: skillId || null,
+      proficiency: 'INTERMEDIATE',
+      years_experience: 0,
+      is_primary: false,
+      isEdit: false
+    });
+    setIsAddOpen(false);
+    setSearch('');
+    setSearchResults([]);
+    setIsFormOpen(true);
   };
 
   const handleOpenEditForm = (skill: Skill) => {
     setCurrentSkill({
       ...skill,
-      name: skill.skill_name || skill.name,
+      name: (skill as any).skill_name || skill.name,
       isEdit: true
     });
     setIsFormOpen(true);
@@ -121,18 +131,37 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
           </PopoverTrigger>
           <PopoverContent className="w-[300px] p-0" align="end">
             <Command>
-              <CommandInput placeholder="Search skills..." value={search} onValueChange={setSearch} />
+              <CommandInput
+                placeholder="Search skills..."
+                value={search}
+                onValueChange={handleSearch}
+              />
               <CommandList>
                 <CommandEmpty>
-                  {search && <div className="p-2 cursor-pointer hover:bg-slate-100 text-sm" onClick={() => handleOpenAddForm(search)}>Add "{search}"</div>}
+                  {search && (
+                    <div
+                      className="p-2 cursor-pointer hover:bg-slate-100 text-sm"
+                      onClick={() => handleOpenAddForm(search)}
+                    >
+                      Add "{search}"
+                    </div>
+                  )}
                 </CommandEmpty>
-                <CommandGroup heading="Suggestions">
-                  {mockSkillsList.filter(s => !data.some(d => (d.name||d.skill_name) === s.name)).map(skill => (
-                    <CommandItem key={skill.id} onSelect={() => handleOpenAddForm(skill.name)}>
-                      {skill.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {/* ✅ Backend se real skills */}
+                {searchResults.length > 0 && (
+                  <CommandGroup heading="Results">
+                    {searchResults
+                      .filter(s => !data.some(d => ((d as any).skill_name || d.name) === s.name))
+                      .map((skill: any) => (
+                        <CommandItem
+                          key={skill.id}
+                          onSelect={() => handleOpenAddForm(skill.name, skill.id)}
+                        >
+                          {skill.name}
+                        </CommandItem>
+                      ))}
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
@@ -149,34 +178,36 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="proficiency" className="text-right">Level</Label>
-              <Select 
-                value={currentSkill.proficiency} 
+              <Select
+                value={currentSkill.proficiency}
                 onValueChange={(val) => setCurrentSkill({...currentSkill, proficiency: val})}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select level" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROFICIENCY_OPTIONS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                  {PROFICIENCY_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="experience" className="text-right">Years</Label>
-              <Input 
-                id="experience" 
-                type="number" 
-                step="0.5" 
-                className="col-span-3" 
+              <Input
+                id="experience"
+                type="number"
+                step="0.5"
+                className="col-span-3"
                 value={currentSkill.years_experience}
                 onChange={(e) => setCurrentSkill({...currentSkill, years_experience: e.target.value})}
               />
             </div>
             <div className="flex items-center justify-end space-x-2">
               <Label htmlFor="primary">Mark as Primary</Label>
-              <Switch 
-                id="primary" 
-                checked={currentSkill.is_primary} 
+              <Switch
+                id="primary"
+                checked={currentSkill.is_primary}
                 onCheckedChange={(val) => setCurrentSkill({...currentSkill, is_primary: val})}
               />
             </div>
@@ -194,14 +225,14 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
 
       <div className="flex flex-wrap gap-2">
         {data.length > 0 ? data.map(skill => (
-          <Badge 
-            key={skill.id} 
-            variant={skill.is_primary ? "default" : "secondary"} 
+          <Badge
+            key={skill.id}
+            variant={skill.is_primary ? "default" : "secondary"}
             className="text-base py-1 px-3 cursor-pointer hover:bg-primary hover:text-white transition-all"
             onClick={() => handleOpenEditForm(skill)}
           >
             {skill.is_primary && <Star className="mr-2 h-3 w-3 fill-current" />}
-            {skill.skill_name || skill.name}
+            {(skill as any).skill_name || skill.name}
             <Edit className="ml-2 h-3 w-3 opacity-50" />
           </Badge>
         )) : (

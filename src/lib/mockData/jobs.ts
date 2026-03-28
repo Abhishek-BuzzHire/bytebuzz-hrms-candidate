@@ -1,4 +1,4 @@
-import { Job } from "../types/job";
+/*import { Job } from "../types/job";
 
 export const mockJobs: Job[] = [
   {
@@ -91,4 +91,6 @@ export const mockJobs: Job[] = [
     workMode: "Hybrid",
     salaryRange: "$160k - $210k"
   }
-];
+];*/
+
+//export const mockJobs: never[] = [];

@@ -4,12 +4,12 @@ import { GoogleLogin } from "@react-oauth/google";
 import { AxiosError } from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { fetchLogin } from "@/apis/user";
 import { useAuth } from "@/context/AuthContext";
 
-export default function LoginPage() {
+function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get("returnUrl");
@@ -208,5 +208,19 @@ export default function LoginPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex justify-center items-center bg-white">
+                <div className="text-center">
+                    <div className="text-gray-400">Loading...</div>
+                </div>
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }

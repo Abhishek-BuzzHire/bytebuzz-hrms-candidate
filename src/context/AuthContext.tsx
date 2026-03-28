@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+import { candidateApi } from "@/apis/user";
 
 // --- 1. Define Types ---
 
@@ -10,12 +11,11 @@ export interface UserState {
     id: string;
     username: string;
     email?: string;
+    role?: string; // ✅ Naya field add kiya
 }
 
 interface TokenPayload {
     id: string | number;
-    username: string;
-    email?: string;
     exp?: number;
     iat?: number;
     jti?: string;
@@ -27,20 +27,20 @@ interface AuthContextValue {
     loading: boolean;
     login: (access: string, refresh: string) => void;
     logout: () => void;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// Cookie config
 const COOKIE_OPTIONS: Cookies.CookieAttributes = {
     expires: 7,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "Lax",
 };
 
 const REFRESH_COOKIE_OPTIONS: Cookies.CookieAttributes = {
     expires: 30,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "Lax",
 };
 
@@ -48,31 +48,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<UserState | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const setUserFromToken = (accessToken: string) => {
+    const setUserFromToken = async (accessToken: string) => {
         try {
             const decoded = jwtDecode<TokenPayload>(accessToken);
+
+            // ✅ Profile API se real data fetch ho raha hai
+            const profile = await candidateApi.getProfile();
+
             setUser({
                 id: String(decoded.id),
-                username: decoded.username,
-                email: decoded.email,
+                // ✅ "User" fallback hata kar generic placeholder rakha
+                username: profile?.full_name || profile?.primary_email || "Account",
+                email: profile?.primary_email || "",
+                // ✅ Role ko backend se connect kiya (Candidate mock data khatam)
+                role: profile?.role || "Member", 
             });
         } catch (error) {
-            console.error("Token decoding failed or token is invalid.", error);
             setUser(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const refreshUser = async () => {
+        const accessToken = Cookies.get("access");
+        if (accessToken) {
+            await setUserFromToken(accessToken);
         }
     };
 
     useEffect(() => {
-        // Read from cookie (also visible in DevTools → Application → Cookies)
         const accessToken = Cookies.get("access");
         if (accessToken) {
             setUserFromToken(accessToken);
+        } else {
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
 
     const login = (access: string, refresh: string) => {
-        // Store in cookies — visible under DevTools → Application → Cookies
         Cookies.set("access", access, COOKIE_OPTIONS);
         Cookies.set("refresh", refresh, REFRESH_COOKIE_OPTIONS);
         setUserFromToken(access);
@@ -90,11 +104,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loading,
         login,
         logout,
+        refreshUser,
     };
 
     return (
         <AuthContext.Provider value={contextValue}>
-            {loading ? null : children}
+            {/* Loading ke waqt screen khali na dikhe, isliye children load hone dein */}
+            {children}
         </AuthContext.Provider>
     );
 };

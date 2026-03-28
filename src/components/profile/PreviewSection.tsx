@@ -113,7 +113,7 @@ export default function PreviewSection({ profile }: PreviewSectionProps) {
               {skills.map(skill => (
                   <Badge key={skill.id} variant={skill.is_primary ? "default" : "secondary"} className="py-1 px-3">
                       {skill.is_primary && <Star className="mr-1.5 h-3 w-3 fill-current" />}
-                      {skill.name}
+                      {skill.name || (skill as any).skill_name}
                   </Badge>
               ))}
             </div>
