@@ -10,7 +10,6 @@ export interface Job {
   company_name?: string;
   location: string;
   experience: number;
-  employmentType: EmploymentType;
   employment_type?: string;
   skills: string[];
   description: string;
@@ -21,9 +20,10 @@ export interface Job {
   work_mode?: string;
   logoUrl?: string;
   logo_url?: string;
-  salaryRange?: string;
-  salary_range?: string;
-  min_experience_months?: number;
+  job_min_salary?: number;
+  job_max_salary?: number;
+  job_min_exp?: number;
+  job_max_exp?: number;
 }
 
 export interface Application {

@@ -47,8 +47,8 @@ function LoginContent() {
         try {
             setSubmitting(true);
             setError(null);
-            const data = await fetchLogin({ email: username, password });
-
+            const data = await fetchLogin({ email: username, password: password });
+            console.log("Login successful:", data);
             if (data?.access && data?.refresh) {
                 login(data.access, data.refresh); // ✅ sets cookies, decodes user
             }
@@ -58,6 +58,7 @@ function LoginContent() {
             const error = err as AxiosError<any>;
             setError(error.response?.data?.message || "Invalid username or password");
         } finally {
+
             setSubmitting(false);
         }
     };

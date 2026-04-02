@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Edit, Trash2, GraduationCap } from 'lucide-react';
 import { SectionCard } from './SectionCard';
-import { candidateApi } from '@/apis/user/route';
+import { candidateApi } from '@/apis/user/index';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 
@@ -206,7 +206,7 @@ export default function EducationSection({ data, onSave }: EducationSectionProps
         </DialogContent>
       </Dialog>
       <div className="space-y-4">
-        {data.length > 0 ? data.sort((a,b) => (b.end_year || 0) - (a.end_year || 0)).map(edu => (
+        {data.length > 0 ? data.sort((a, b) => (b.end_year || 0) - (a.end_year || 0)).map(edu => (
           <Card key={edu.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -247,10 +247,10 @@ export default function EducationSection({ data, onSave }: EducationSectionProps
             </CardContent>
           </Card>
         )) : (
-            <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">No education added</h3>
-            </div>
+          <div className="text-center py-10 border-2 border-dashed rounded-lg">
+            <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-2 text-sm font-semibold text-gray-900">No education added</h3>
+          </div>
         )}
       </div>
     </SectionCard>

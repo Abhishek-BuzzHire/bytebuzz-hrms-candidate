@@ -44,8 +44,8 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
 
   const [locationQuery, setLocationQuery] = useState('');
   const [locations, setLocations] = useState<{ id: number; name: string; city?: string; state?: string; country?: string }[]>([]);
-  const debouncedLocationQuery = useDebounce(locationQuery, 400);
-  
+  const debouncedLocationQuery = useDebounce(locationQuery, 15000);
+
   const [isLocationSelected, setIsLocationSelected] = useState(false);
 
   const onSaveRef = useRef(onSave);
@@ -83,14 +83,14 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
   });
 
   const watchedData = form.watch();
-  const debouncedData = useDebounce(watchedData, 1000);
+  const debouncedData = useDebounce(watchedData, 15000);
 
   useEffect(() => {
     if (form.formState.isDirty) {
       const { experience_years, experience_months, ...rest } = debouncedData;
       const total_experience_months = (Number(experience_years) || 0) * 12 + (Number(experience_months) || 0);
 
-      const onlyLocationTextChanged = 
+      const onlyLocationTextChanged =
         Object.keys(rest).every(key => {
           if (key === 'location_text') return true;
           return rest[key as keyof typeof rest] === previousDataRef.current[key as keyof typeof previousDataRef.current];
@@ -144,7 +144,7 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
   const onSubmit = async (values: BasicInfoFormData) => {
     const { experience_years, experience_months, ...rest } = values;
     const total_experience_months = (Number(experience_years) || 0) * 12 + (Number(experience_months) || 0);
-    
+
     let submitData: any = {
       ...dataRef.current,
       ...rest,
@@ -221,9 +221,9 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., 9876543210" 
-                      {...field} 
+                    <Input
+                      placeholder="e.g., 9876543210"
+                      {...field}
                       onChange={(e) => {
                         const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
                         field.onChange(cleaned);
@@ -326,11 +326,11 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="Years" 
-                          {...field} 
-                          onChange={(e) => field.onChange(e.target.valueAsNumber)} 
+                        <Input
+                          type="number"
+                          placeholder="Years"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.valueAsNumber)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -343,11 +343,11 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="Months" 
-                          {...field} 
-                          onChange={(e) => field.onChange(e.target.valueAsNumber)} 
+                        <Input
+                          type="number"
+                          placeholder="Months"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.valueAsNumber)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -365,11 +365,11 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
                   <FormItem>
                     <FormLabel>Current Salary</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="e.g., 100000" 
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)} 
+                      <Input
+                        type="number"
+                        placeholder="e.g., 100000"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -383,11 +383,11 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
                   <FormItem>
                     <FormLabel>Expected Salary</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="e.g., 120000" 
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)} 
+                      <Input
+                        type="number"
+                        placeholder="e.g., 120000"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
                     </FormControl>
                     <FormMessage />

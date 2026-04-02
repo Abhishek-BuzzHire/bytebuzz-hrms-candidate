@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Edit, Trash2, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { SectionCard } from './SectionCard';
-import { candidateApi } from '@/apis/user/route';
+import { candidateApi } from '@/apis/user/index';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 
@@ -27,12 +27,12 @@ interface ExperienceSectionProps {
 const experienceSchema = z.object({
   company_name_text: z.string().min(1, 'Company name is required'),
   designation: z.string().min(1, 'Designation is required'),
-  employment_type: z.string().optional(),
-  location: z.string().optional(),
+  employment_type: z.string().min(1, 'Employment type is required'),
   start_date: z.string().min(1, 'Start date is required'),
   end_date: z.string().optional(),
   is_current: z.boolean().default(false),
-  description: z.string().optional(),
+  location: z.string().min(1, 'Location is required'),
+  description: z.string().min(1, 'Description is required'),
 }).refine(data => !data.is_current ? !!data.end_date : true, {
   message: "End date is required if this is not your current job.",
   path: ["end_date"],
@@ -47,13 +47,22 @@ const ExperienceForm = ({ experience, onSave, closeDialog }: { experience?: Expe
       company_name_text: experience.company_name_text || '',
       designation: experience.designation,
       employment_type: experience.employment_type || '',
-      location: experience.location || '',
       // ✅ YYYY-MM-DD format setup for default values
       start_date: experience.start_date ? experience.start_date.split('T')[0] : '',
       end_date: experience.end_date ? experience.end_date.split('T')[0] : '',
       is_current: experience.is_current,
+      location: experience.location || '',
       description: experience.description || '',
-    } : { is_current: false },
+    } : {
+      company_name_text: "",
+      designation: "",
+      employment_type: "",
+      start_date: "",
+      end_date: "",
+      is_current: false,
+      location: "",
+      description: "",
+    },
   });
 
   const isCurrent = form.watch('is_current');
@@ -77,10 +86,10 @@ const ExperienceForm = ({ experience, onSave, closeDialog }: { experience?: Expe
     // 4. Employment Type Formatting for Django (e.g., "Full-time" -> "FULL_TIME")
     if (values.employment_type?.trim()) {
       payload.employment_type = values.employment_type
-                                      .trim()
-                                      .toUpperCase()
-                                      .replace(/-/g, '_')
-                                      .replace(/ /g, '_');
+        .trim()
+        .toUpperCase()
+        .replace(/-/g, '_')
+        .replace(/ /g, '_');
     } else {
       payload.employment_type = null;
     }
@@ -172,18 +181,18 @@ export default function ExperienceSection({ data, onSave }: ExperienceSectionPro
   const handleSave = async (payloadData: any) => {
     try {
       let saved: Experience;
-      
+
       // ✅ If ID is present, hit the Update API
       if (payloadData.id) {
         saved = await candidateApi.updateExperience(payloadData.id, payloadData);
         onSave(data.map(e => e.id === payloadData.id ? saved : e));
-      } 
+      }
       // ✅ If no ID is present, hit the Create API (No fake IDs sent to the backend)
       else {
         saved = await candidateApi.createExperience(payloadData);
         onSave([...data, saved]);
       }
-      
+
       toast({ title: "Experience Saved Successfully!" });
     } catch (error) {
       console.error(error);
@@ -229,7 +238,7 @@ export default function ExperienceSection({ data, onSave }: ExperienceSectionPro
         </DialogContent>
       </Dialog>
       <div className="space-y-4">
-        {data.length > 0 ? data.sort((a,b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).map(exp => (
+        {data.length > 0 ? data.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).map(exp => (
           <Card key={exp.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -273,11 +282,11 @@ export default function ExperienceSection({ data, onSave }: ExperienceSectionPro
             </CardContent>
           </Card>
         )) : (
-            <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">No experience added</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Get started by adding your work experience.</p>
-            </div>
+          <div className="text-center py-10 border-2 border-dashed rounded-lg">
+            <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-2 text-sm font-semibold text-gray-900">No experience added</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Get started by adding your work experience.</p>
+          </div>
         )}
       </div>
     </SectionCard>

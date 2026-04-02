@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_BASE_URL } from "./api-config";
 import Cookies from "js-cookie";
+import { Skill } from "./route";
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -72,6 +73,7 @@ api.interceptors.response.use(
 
 const ACCOUNT_PATH = '/account';
 const CANDIDATE_PATH = '/api/candidate';
+
 
 export const accountApi = {
     async signup(data: any) {
@@ -191,8 +193,12 @@ export const candidateApi = {
     async deleteSkill(id: any) {
         return (await api.delete(`${CANDIDATE_PATH}/skills/${id}/`)).data;
     },
-    async searchSkills(query: string) {
-        return (await api.get(`${CANDIDATE_PATH}/skills/search/`, { params: { q: query } })).data;
+    async searchSkills(query: string): Promise<Skill[]> {
+        const res = await api.get(`/api/skills/?q=${encodeURIComponent(query)}`);
+        return res.data.map((s: { skill_id: number; skill_name: string }) => ({
+            id: s.skill_id,
+            name: s.skill_name,
+        }));
     },
     async getResumes() {
         return (await api.get(`${CANDIDATE_PATH}/resume/`)).data;
@@ -224,13 +230,13 @@ export const jobsApi = {
         return (await api.get(`${CANDIDATE_PATH}/jobs/${pk}/`)).data;
     },
     async saveJob(pk: number) {
-        return (await api.post(`${CANDIDATE_PATH}/jobs/${pk}/save/`)).data;
+        return (await api.post(`api/candidate/jobs/${pk}/save/`)).data;
     },
     async applyJob(pk: number, data?: any) {
         return (await api.post(`${CANDIDATE_PATH}/jobs/${pk}/apply/`, data)).data;
     },
     async getSavedJobs() {
-        return (await api.get(`${CANDIDATE_PATH}/saved-jobs/`)).data;
+        return (await api.get(`api/candidate/saved-jobs/`)).data;
     },
     async getApplications() {
         return (await api.get(`${CANDIDATE_PATH}/applications/`)).data;
@@ -238,4 +244,5 @@ export const jobsApi = {
     async getApplicationDetail(pk: number) {
         return (await api.get(`${CANDIDATE_PATH}/applications/${pk}/`)).data;
     }
+    
 };

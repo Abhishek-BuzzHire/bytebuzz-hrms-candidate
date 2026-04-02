@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Plus, Lightbulb, Star, Trash2, Edit } from 'lucide-react';
 import { SectionCard } from './SectionCard';
-import { candidateApi } from '@/apis/user';
+import { candidateApi } from '@/apis/user/index';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -46,13 +46,14 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
   // ✅ Backend se skills search karo
   const handleSearch = async (query: string) => {
     setSearch(query);
-    if (query.length < 2) {
+    if (query.length < 1) {
       setSearchResults([]);
       return;
     }
     try {
       const results = await candidateApi.searchSkills(query);
-      const list = results?.results ?? results ?? [];
+      const list = Array.isArray(results) ? results : [];
+      console.log("Search results:", list);
       setSearchResults(list);
     } catch {
       setSearchResults([]);
@@ -139,12 +140,14 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
               <CommandList>
                 <CommandEmpty>
                   {search && (
-                    <div
-                      className="p-2 cursor-pointer hover:bg-slate-100 text-sm"
+                    <button
+                      type="button"
                       onClick={() => handleOpenAddForm(search)}
+                      className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-100 hover:border-slate-300 hover:shadow-sm"
                     >
-                      Add "{search}"
-                    </div>
+                      <span className="text-base leading-none">+</span>
+                      <span>Add "{search}"</span>
+                    </button>
                   )}
                 </CommandEmpty>
                 {/* ✅ Backend se real skills */}
@@ -180,7 +183,7 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
               <Label htmlFor="proficiency" className="text-right">Level</Label>
               <Select
                 value={currentSkill.proficiency}
-                onValueChange={(val) => setCurrentSkill({...currentSkill, proficiency: val})}
+                onValueChange={(val) => setCurrentSkill({ ...currentSkill, proficiency: val })}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select level" />
@@ -200,7 +203,7 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
                 step="0.5"
                 className="col-span-3"
                 value={currentSkill.years_experience}
-                onChange={(e) => setCurrentSkill({...currentSkill, years_experience: e.target.value})}
+                onChange={(e) => setCurrentSkill({ ...currentSkill, years_experience: e.target.value })}
               />
             </div>
             <div className="flex items-center justify-end space-x-2">
@@ -208,7 +211,7 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
               <Switch
                 id="primary"
                 checked={currentSkill.is_primary}
-                onCheckedChange={(val) => setCurrentSkill({...currentSkill, is_primary: val})}
+                onCheckedChange={(val) => setCurrentSkill({ ...currentSkill, is_primary: val })}
               />
             </div>
           </div>

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_BASE_URL } from "./api-config";
 import Cookies from "js-cookie";
+export type Skill={ id: number; name: string }
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -18,7 +19,7 @@ api.interceptors.request.use((config) => {
 });
 
 const ACCOUNT_PATH = '/account';
-const CANDIDATE_PATH = '/api/candidate';
+const CANDIDATE_PATH = '/api/candidates';
 
 // ✅ Helper — real backend error nikalta hai
 const getError = (error: any, fallback: string) => {
@@ -175,13 +176,12 @@ export const candidateApi = {
     },
 
     // ── Skills ───────────────────────────────────
-    async searchSkills(query: string) {
-        try {
-            const res = await api.get(`${CANDIDATE_PATH}/skills/search/`, { params: { q: query } });
-            return res.data;
-        } catch (error: any) {
-            getError(error, "Failed to search skills");
-        }
+    async searchSkills(query: string): Promise<Skill[]> {
+        const res = await api.get(`/api/skills/?q=${encodeURIComponent(query)}`);
+        return res.data.map((s: { skill_id: number; skill_name: string }) => ({
+            id: s.skill_id,
+            name: s.skill_name,
+        }));
     },
     async getSkills() {
         try {
@@ -210,6 +210,25 @@ export const candidateApi = {
     async deleteSkill(id: number | string) {
         try {
             const res = await api.delete(`${CANDIDATE_PATH}/skills/${id}/`);
+            return res.data;
+        } catch (error: any) {
+            getError(error, "Failed to delete skill");
+        }
+    },
+
+
+    //new skill edition
+     async skillsMenu(id: number | string) {
+        try {
+            const res = await api.get(`api/jobs/jobs/skills/${id}/`);
+            return res.data;
+        } catch (error: any) {
+            getError(error, "Failed to delete skill");
+        }
+    },
+    async skills(id: number | string) {
+        try {
+            const res = await api.post(`api/jobs/jobs/skills/${id}/`);
             return res.data;
         } catch (error: any) {
             getError(error, "Failed to delete skill");

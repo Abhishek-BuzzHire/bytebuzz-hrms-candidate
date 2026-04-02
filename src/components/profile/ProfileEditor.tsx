@@ -20,7 +20,7 @@ interface ProfileEditorProps {
     education: Education[];
     skills: Skill[];
     // ✅ FIX 1: 'resumes' array hata kar 'resume' object kar diya
-    resume?: Resume | null; 
+    resume?: Resume | null;
   }
 }
 
@@ -42,10 +42,10 @@ export default function ProfileEditor({ initialData }: ProfileEditorProps) {
   const [experience, setExperience] = useState<Experience[]>(initialData.experience);
   const [education, setEducation] = useState<Education[]>(initialData.education);
   const [skills, setSkills] = useState<Skill[]>(initialData.skills);
-  
+
   // ✅ FIX 2: State array ki jagah object/null le rahi hai
   const [resume, setResume] = useState<Resume | null>(initialData.resume || null);
-  
+
   const [completion, setCompletion] = useState(0);
 
   useEffect(() => {
@@ -59,10 +59,10 @@ export default function ProfileEditor({ initialData }: ProfileEditorProps) {
     if (experience.length > 0) score += 30;
     if (education.length > 0) score += 15;
     if (skills.length > 0) score += 20;
-    
+
     // ✅ FIX 3: .some() error solved! Ab ye direct object check kar raha hai
     if (resume && resume.is_active) score += 15;
-    
+
     setCompletion(score);
   }, [basicInfo, experience, education, skills, resume]); // ✅ FIX 4: Dependency update ho gayi
 
