@@ -1,10 +1,8 @@
 "use client";
 
 import React from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useApplications, useSavedJobs, useActiveJobs } from '@/hooks/jobs/use-jobs';
 import { Briefcase, Bookmark, TrendingUp, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
@@ -16,7 +14,7 @@ export default function DashboardPage() {
   // ✅ Naye cached hooks use ho rahe hain
   const { data: applications = [], loading: appsLoading } = useApplications();
   const { data: savedJobs = [], loading: savedLoading } = useSavedJobs();
-  const { data: allJobs = [] } = useActiveJobs(); 
+  const { data: allJobs = [] } = useActiveJobs();
   const { user } = useAuth();
 
   const getStatusIcon = (status: string) => {

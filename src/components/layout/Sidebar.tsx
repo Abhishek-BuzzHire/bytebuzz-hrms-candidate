@@ -16,9 +16,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import ProfileSidebarStepper from '@/components/profile/ProfileSidebarStepper';
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { useProfileCompletion } from "@/components/profile/ProfileCompletionContext";
+
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -33,8 +34,9 @@ const secondaryItems = [
   { icon: Settings, label: 'Settings', href: '#' },
 ];
 
-export default function Sidebar({ completion = 0 }: { completion: number }) {
-  const pathname = usePathname();
+
+export default function Sidebar() {
+  const { completion } = useProfileCompletion(); const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth(); // ✅ real backend data
 
@@ -91,7 +93,24 @@ export default function Sidebar({ completion = 0 }: { completion: number }) {
       </div>
 
       <div className="mt-auto px-6 pb-6 space-y-6">
-        <ProfileSidebarStepper completion={completion} />
+        {completion < 100 && (
+          <Link
+            href="/dashboard/profile/edit"
+            className="block rounded-xl border p-4 bg-secondary/40 hover:bg-secondary/60 transition"
+          >
+            <p className="text-sm font-semibold">Complete your profile</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {completion}% completed
+            </p>
+
+            <div className="mt-3 h-2 bg-secondary rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all"
+                style={{ width: `${completion}%` }}
+              />
+            </div>
+          </Link>
+        )}
 
         <nav className="space-y-1">
           {secondaryItems.map((item) => (

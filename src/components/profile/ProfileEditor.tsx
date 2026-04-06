@@ -12,7 +12,7 @@ import SkillsSection from './SkillsSection';
 import ResumeSection from './ResumeSection';
 import PreviewSection from './PreviewSection';
 import { Skeleton } from '@/components/ui/skeleton';
-
+import { useProfileCompletion } from "@/components/profile/ProfileCompletionContext";
 interface ProfileEditorProps {
   initialData: {
     basicInfo: Candidate;
@@ -45,26 +45,33 @@ export default function ProfileEditor({ initialData }: ProfileEditorProps) {
 
   // ✅ FIX 2: State array ki jagah object/null le rahi hai
   const [resume, setResume] = useState<Resume | null>(initialData.resume || null);
-
-  const [completion, setCompletion] = useState(0);
+  const { completion, setCompletion } = useProfileCompletion();
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
 
+
+
   const calculateCompletion = useCallback(() => {
     let score = 0;
-    if (basicInfo.full_name && basicInfo.primary_email && basicInfo.headline) score += 20;
+
+    if (
+      basicInfo.full_name &&
+      basicInfo.primary_email &&
+      basicInfo.headline
+    ) {
+      score += 20;
+    }
+
     if (experience.length > 0) score += 30;
     if (education.length > 0) score += 15;
     if (skills.length > 0) score += 20;
-
-    // ✅ FIX 3: .some() error solved! Ab ye direct object check kar raha hai
-    if (resume && resume.is_active) score += 15;
+    if (resume?.is_active) score += 15;
 
     setCompletion(score);
-  }, [basicInfo, experience, education, skills, resume]); // ✅ FIX 4: Dependency update ho gayi
+  }, [basicInfo, experience, education, skills, resume]);
 
   useEffect(() => {
     calculateCompletion();

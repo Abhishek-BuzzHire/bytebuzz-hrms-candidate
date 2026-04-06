@@ -14,7 +14,6 @@ interface JobFilters {
 const cache: Record<string, any> = {};
 
 // ── Job Normalizer ───────────────────────────────────────────────────────────
-// ── Job Normalizer ───────────────────────────────────────────────────────────
 function normalizeJob(raw: any): Job {
   return {
     ...raw,
