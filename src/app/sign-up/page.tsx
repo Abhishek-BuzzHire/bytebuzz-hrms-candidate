@@ -19,31 +19,39 @@ export default function SignupPage() {
     const [showSignupPassword, setShowSignupPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const handleSignup = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSignupError(null);
+   const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignupError(null);
 
-        if (password !== confirmPassword) {
-            setSignupError("Passwords do not match");
-            return;
-        }
+    if (password !== confirmPassword) {
+        setSignupError("Passwords do not match");
+        return;
+    }
 
-        try {
-            const payload: SignupPayload = {
-                email,
-                password,
-                confirm_password: confirmPassword,
-            };
-
-            await fetchSignup(payload);
-            setSignupSuccess(true); // ✅ show success instead of redirect
-
-        } catch (error: any) {
-            setSignupError(
-                error?.response?.data?.message || "Signup failed. Please try again."
-            );
-        }
+   try {
+    const payload: SignupPayload = {
+        email,
+        password,
+        confirm_password: confirmPassword,
     };
+
+    const result = await fetchSignup(payload);
+    console.log("✅ Signup result:", result); // ✅ Add karo
+    setSignupSuccess(true);
+
+} 
+
+ catch (error: any) {
+    const errData = error?.response?.data;
+    const message =
+        errData?.errors?.email?.[0] ||     // ✅ errors.email[0]
+        errData?.errors?.password?.[0] ||  // ✅ errors.password[0]
+        errData?.message ||
+        errData?.detail ||
+        "Signup failed. Please try again.";
+    setSignupError(message);
+}
+};
 
     // ✅ Success screen
     if (signupSuccess) {
@@ -94,7 +102,7 @@ export default function SignupPage() {
                     {/* Header */}
                     <div className="text-center mb-8">
                         <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                            <Image src="/logo.webp" alt="" height={26} width={26} />
+                            <Image src="/images/logo.png" alt="" height={26} width={26} />
                         </div>
                         <h2 className="text-[22px] font-bold tracking-tight text-slate-900 mb-1">
                             Create your account

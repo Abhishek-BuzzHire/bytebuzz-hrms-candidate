@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent, ChangeEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { fetchForgotPassword, fetchVerifyOtp } from "@/apis/user";
+import { fetchForgotPassword, fetchVerifyOTP } from "@/apis/user";
 
 const EXPIRY_KEY = "otp_expiry";
 
@@ -75,7 +75,7 @@ function EnterOtpForm() {
         setLoading(true);
 
         try {
-            const data = await fetchVerifyOtp({ email, otp });
+            const data = await fetchVerifyOTP({ email, otp });
             sessionStorage.removeItem(EXPIRY_KEY); // ✅ clear on success
             router.push(
                 `/forget-password/set-password?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`

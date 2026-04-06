@@ -4,12 +4,12 @@ import { GoogleLogin } from "@react-oauth/google";
 import { AxiosError } from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { fetchLogin } from "@/apis/user";
 import { useAuth } from "@/context/AuthContext";
 
-export default function LoginPage() {
+function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get("returnUrl");
@@ -47,8 +47,8 @@ export default function LoginPage() {
         try {
             setSubmitting(true);
             setError(null);
-            const data = await fetchLogin({ email: username, password });
-
+            const data = await fetchLogin({ email: username, password: password });
+            console.log("Login successful:", data);
             if (data?.access && data?.refresh) {
                 login(data.access, data.refresh); // ✅ sets cookies, decodes user
             }
@@ -58,6 +58,7 @@ export default function LoginPage() {
             const error = err as AxiosError<any>;
             setError(error.response?.data?.message || "Invalid username or password");
         } finally {
+
             setSubmitting(false);
         }
     };
@@ -69,7 +70,7 @@ export default function LoginPage() {
                 {/* Header */}
                 <div className="text-center mb-7">
                     <div className="w-[52px] h-[52px] rounded-[14px] bg-blue-50 border border-blue-200 flex items-center justify-center mx-auto mb-5">
-                        <Image src="/logo.webp" alt="" height={30} width={30} />
+                        <Image src="/images/logo.png" alt="" height={30} width={30} />
                     </div>
                     <h2 className="text-2xl font-bold tracking-[-0.025em] text-slate-900 mb-1.5">
                         Log in to your account
@@ -208,5 +209,19 @@ export default function LoginPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex justify-center items-center bg-white">
+                <div className="text-center">
+                    <div className="text-gray-400">Loading...</div>
+                </div>
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }
