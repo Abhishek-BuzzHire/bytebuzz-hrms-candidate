@@ -13,7 +13,7 @@ import UserProfilePopover from "@/components/layout/UserProfilePopover";
 import { useAuth } from "@/context/AuthContext";
 
 export default function DashboardPage() {
-  // ✅ Naye cached hooks use ho rahe hain
+  //  Naye cached hooks use ho rahe hain
   const { data: applications = [], loading: appsLoading } = useApplications();
   const { data: savedJobs = [], loading: savedLoading } = useSavedJobs();
   const { data: allJobs = [] } = useActiveJobs(); 

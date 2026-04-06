@@ -12,7 +12,8 @@ import {
   Settings,
   HelpCircle,
   LogOut,
-  Search
+  Search,
+  ChevronRight  // ⬅️ ADD KARO
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -36,9 +37,8 @@ const secondaryItems = [
 export default function Sidebar({ completion = 0 }: { completion: number }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth(); // ✅ real backend data
+  const { user } = useAuth();
 
-  // ✅ Initials generate karo
   const initials = user?.username
     ? user.username.slice(0, 2).toUpperCase()
     : "U";
@@ -72,7 +72,7 @@ export default function Sidebar({ completion = 0 }: { completion: number }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors justify-between", // ⬅️ justify-between ADD KARO
                   isActive
                     ? "text-white"
                     : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
@@ -82,8 +82,14 @@ export default function Sidebar({ completion = 0 }: { completion: number }) {
                   color: 'white',
                 } : {}}
               >
-                <item.icon className="w-4 h-4" />
-                {item.label}
+                <div className="flex items-center gap-3">  {/* ⬅️ WRAPPER DIV */}
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </div>
+                <ChevronRight className={cn(
+                  "w-4 h-4 transition-colors",
+                  isActive ? "text-white" : "text-gray-400"
+                )} />  {/* ⬅️ ARROW ADD KARO */}
               </Link>
             );
           })}
@@ -98,10 +104,13 @@ export default function Sidebar({ completion = 0 }: { completion: number }) {
             <Link
               key={item.label}
               href={item.href}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-secondary/80 hover:text-foreground transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-secondary/80 hover:text-foreground transition-colors justify-between" // ⬅️ justify-between ADD KARO
             >
-              <item.icon className="w-4 h-4" />
-              {item.label}
+              <div className="flex items-center gap-3">  {/* ⬅️ WRAPPER DIV */}
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400" />  {/* ⬅️ ARROW ADD KARO */}
             </Link>
           ))}
         </nav>
@@ -117,7 +126,6 @@ export default function Sidebar({ completion = 0 }: { completion: number }) {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              {/* ✅ Real backend data */}
               <span className="text-sm font-semibold truncate max-w-[100px]">
                 {user?.username || "User"}
               </span>
