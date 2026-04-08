@@ -2,6 +2,7 @@ import axios from "axios";
 import { API_BASE_URL } from "./api-config";
 import Cookies from "js-cookie";
 import { Skill } from "./route";
+import { get } from "http";
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -157,6 +158,9 @@ export const candidateApi = {
     async updateProfile(data: any) {
         return (await api.put(`${CANDIDATE_PATH}/profile/`, data)).data;
     },
+    async getBasicInfo() {
+        return (await api.get(`${CANDIDATE_PATH}/profile/basic/`)).data;
+    },
     async getEducations() {
         return (await api.get(`${CANDIDATE_PATH}/education/`)).data;
     },
@@ -219,6 +223,15 @@ export const candidateApi = {
     },
     async searchLocations(query: string) {
         return (await api.get(`${CANDIDATE_PATH}/locations/search/`, { params: { q: query } })).data;
+    },
+    async getCountries(query: string = '') {
+        return (await api.get(`api/countries`, { params: { q: query } })).data;
+    },
+    async getStates(query: string = '') {
+        return (await api.get(`api/states/search`, { params: { q: query } })).data;
+    },
+    async getCities(query: string = '') {
+        return (await api.get(`api/city-search`, { params: { q: query } })).data;
     }
 };
 

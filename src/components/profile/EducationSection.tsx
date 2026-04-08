@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Edit, Trash2, GraduationCap } from 'lucide-react';
 import { SectionCard } from './SectionCard';
-import { candidateApi } from '@/apis/user/index';
+import { candidateApi } from '@/apis/user/route';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 

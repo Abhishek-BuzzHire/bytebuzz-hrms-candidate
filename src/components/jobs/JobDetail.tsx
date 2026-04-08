@@ -129,7 +129,7 @@ export default function JobDetails({
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center bg-white rounded-xl border">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
       </div>
     );
   }
@@ -177,7 +177,7 @@ export default function JobDetails({
   const qualifications = normalizeArray(rawQualifications);
 
   return (
-    <div className="flex-1 overflow-y-auto px-9 py-7 bg-white rounded-xl border h-full">
+    <div className="flex-1 overflow-y-auto px-9 py-7 bg-whiteborder h-full">
 
       {/* Header */}
       <div className="flex items-center gap-3.5 mb-4">
@@ -188,7 +188,7 @@ export default function JobDetails({
           <Briefcase className="w-6 h-6 text-slate-500" />
         </div>
         <div>
-          <h2 className="text-3xl font-semibold text-gray-900 leading-tight">{job.title}</h2>
+          <h2 className="text-3xl font-semibold text-gray-900 leading-tight">{job.job_title}</h2>
         </div>
       </div>
 
@@ -228,7 +228,7 @@ export default function JobDetails({
       <div className="flex items-center gap-2.5 mb-5 flex-wrap">
         {tab !== 'application' && (
           <Button
-            className="px-5 py-2 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5"
+            className="px-5 py-2 rounded-lg font-bold text-sm bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5"
             onClick={() => onApply(job)}
             disabled={isApplied}
           >
@@ -251,12 +251,12 @@ export default function JobDetails({
             onClick={() => onSave(job)}
             className={`px-4 py-2 rounded-lg font-bold text-sm  transition-all flex items-center gap-1.5
               ${isSaved
-                ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'
-                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'
+                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-200'
+                : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-200'
               }`}
           >
             {isSaved
-              ? <><BookmarkCheck className="w-4 h-4 text-blue-600" /> Saved</>
+              ? <><BookmarkCheck className="w-4 h-4 text-indigo-600" /> Saved</>
               : <><Bookmark className="w-4 h-4" /> Save</>
             }
           </button>
@@ -270,6 +270,7 @@ export default function JobDetails({
           job.employment_type?.replace(/_/g, ' '),
           job.location,
           `${minExpYears} - ${maxExpYears} yrs exp`,
+          minSalary != null && maxSalary != null ? `${formatSalary(minSalary)} – ${formatSalary(maxSalary)} / yr` : null,
         ].filter(Boolean).map((label) => (
           <span
             key={label}
@@ -318,7 +319,7 @@ export default function JobDetails({
           <ul className="space-y-2">
             {qualifications.map((qual, idx) => (
               <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
                 {qual}
               </li>
             ))}
@@ -333,7 +334,7 @@ export default function JobDetails({
           <ul className="space-y-2">
             {responsibilities.map((resp, idx) => (
               <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
                 {resp}
               </li>
             ))}

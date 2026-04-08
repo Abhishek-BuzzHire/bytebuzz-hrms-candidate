@@ -19,7 +19,7 @@ api.interceptors.request.use((config) => {
 });
 
 const ACCOUNT_PATH = '/account';
-const CANDIDATE_PATH = '/api/candidates';
+const CANDIDATE_PATH = '/api/candidate';
 
 // ✅ Helper — real backend error nikalta hai
 const getError = (error: any, fallback: string) => {
@@ -27,6 +27,8 @@ const getError = (error: any, fallback: string) => {
     if (data) throw new Error(JSON.stringify(data));
     throw new Error(error?.message || fallback);
 };
+
+
 
 export const accountApi = {
     async signup(data: any) {
@@ -84,8 +86,22 @@ export const accountApi = {
         } catch (error: any) {
             getError(error, "Failed to reset password");
         }
-    }
+    },
+    async changePassword(data: { current_password: string; new_password: string; confirm_password: string }) {
+        const res = await api.post(`${ACCOUNT_PATH}/change-password/`, {
+            old_password: data.current_password,
+            new_password: data.new_password,
+            confirm_new_password: data.confirm_password,
+        });
+        return res.data;
+    },
 };
+
+export const fetchLogin = accountApi.login;
+export const fetchSignup = accountApi.signup;
+export const fetchForgotPassword = accountApi.forgotPassword;
+export const fetchVerifyOTP = accountApi.verifyOTP;
+export const fetchResetPassword = accountApi.resetPassword;
 
 export const candidateApi = {
     // ── Profile ───────────────────────────────
@@ -290,6 +306,16 @@ export const candidateApi = {
             getError(error, "Failed to search locations");
         }
     },
+     async getCountries(query: string = '') {
+        return (await api.get(`api/countries`, { params: { q: query } })).data;
+    },
+    async getStates(query: string = '') {
+        return (await api.get(`api/states/search`, { params: { q: query } })).data;
+    },
+    async getCities(query: string = '') {
+        return (await api.get(`api/city-search`, { params: { q: query } })).data;
+    }
+
 };
 
 export const jobsApi = {

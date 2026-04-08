@@ -208,18 +208,22 @@ export default function JobsPage() {
   const expRef = useRef<HTMLDivElement>(null);
   const hasAutoSelectedRef = useRef(false);
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
-        setLocationDropdownOpen(false);
-      }
-      if (expRef.current && !expRef.current.contains(e.target as Node)) {
-        setExpDropdownOpen(false);
-      }
+  const handleClick = useCallback((e: MouseEvent) => {
+    if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
+      setLocationDropdownOpen(false);
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    if (expRef.current && !expRef.current.contains(e.target as Node)) {
+      setExpDropdownOpen(false);
+    }
   }, []);
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, [handleClick]);
 
   const debouncedLocation = useDebounce(filterLocation, DEBOUNCE_MS);
   const debouncedMinExp = useDebounce(filterMinExp, DEBOUNCE_MS);
@@ -243,7 +247,7 @@ export default function JobsPage() {
     return jobs.filter((job: Job) => {
       const matchesSearch =
         !term ||
-        job.title?.toLowerCase().includes(term) ||
+        job.job_title?.toLowerCase().includes(term) ||
         job.company_name?.toLowerCase().includes(term);
 
       const matchesMode =
@@ -303,7 +307,7 @@ export default function JobsPage() {
     [savedJobs]
   );
 
-  const isSelectedJobApplied = selectedJob ? isApplied(selectedJob.title) : false;
+  const isSelectedJobApplied = selectedJob ? isApplied(selectedJob.job_title) : false;
   const isSelectedJobSaved = selectedJob ? isSaved(selectedJob.id) : false;
 
   const handleApply = async (formData: any) => {
@@ -311,7 +315,7 @@ export default function JobsPage() {
     try {
       await apply(selectedJob.id, formData);
       setApplyModalOpen(false);
-      toast({ title: "Application Sent!", description: `You've successfully applied for ${selectedJob.title}.` });
+      toast({ title: "Application Sent!", description: `You've successfully applied for ${selectedJob.job_title}.` });
     } catch {
       toast({ title: "Submission Failed", description: "Please check your connection and try again.", variant: "destructive" });
     }
@@ -325,7 +329,7 @@ export default function JobsPage() {
   return (
     <>
       {/* ── Full-viewport shell ───────────────────────────────────────────── */}
-      <div className="flex flex-col h-screen w-full overflow-hidden">
+      <div className="flex flex-col h-screen w-full overflow-hidden pt-6 px-4">
 
         {/* ── Header — never shrinks ──────────────────────────────────────── */}
         <header className="flex-shrink-0 mb-4">
@@ -447,7 +451,7 @@ export default function JobsPage() {
         <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-5 gap-6 overflow-hidden">
 
           {/* Left: job list */}
-          <div className="lg:col-span-2 flex flex-col min-h-0 overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <div className="lg:col-span-2 flex flex-col min-h-0 overflow-hidden border border-gray-200 bg-white">
 
             {/* List header — never shrinks */}
             <div className="flex-shrink-0 flex items-center justify-between border-b border-gray-200 px-4 py-3">
@@ -463,8 +467,8 @@ export default function JobsPage() {
             </div>
 
             {/* Scrollable cards — fills remaining column height */}
-            <div className="flex-1 min-h-0 overflow-y-auto p-4">
-              <div className="space-y-4">
+            <div className="flex-1 min-h-0 overflow-y-auto pt-4 pl-4 pr-6 pb-2">
+              <div className="space-y-3">
                 {jobsLoading ? (
                   <LoadingState />
                 ) : paginatedJobs.length > 0 ? (
@@ -477,7 +481,7 @@ export default function JobsPage() {
                         onClick={() => handleSelectJob(job.id)}
                         isSaved={isSaved(job.id)}
                         onSave={() => toggleSave(job)}
-                        isApplied={isApplied(job.title)}
+                        isApplied={isApplied(job.job_title)}
                       />
                     ))}
                     {visibleCount < filteredJobs.length && (
@@ -498,7 +502,7 @@ export default function JobsPage() {
           </div>
 
           {/* Right: job detail — scrolls independently */}
-          <div className="lg:col-span-3 min-h-0 overflow-y-auto rounded-xl border border-gray-200 bg-card shadow-sm">
+          <div className="lg:col-span-3 min-h-0 overflow-y-auto border border-gray-200 bg-card shadow-sm">
             <JobDetails
               job={selectedJob}
               loading={detailsLoading}

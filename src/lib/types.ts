@@ -1,3 +1,11 @@
+export interface Location {
+  id: number;
+  city: string;
+  state: { id: number; name: string };
+  country: { id: number; name: string };
+  label?: string;
+}
+
 export interface Candidate {
   id: number;
   full_name: string;
@@ -13,6 +21,7 @@ export interface Candidate {
   salary_currency: string;
   salary_period: 'YEAR' | 'MONTH';
   notice_period_days?: number;
+  location?: Location | null;  // 👈 completed
 }
 
 export interface Experience {

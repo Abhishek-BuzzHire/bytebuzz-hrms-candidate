@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState, Suspense } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { fetchLogin } from "@/apis/user";
 import { useAuth } from "@/context/AuthContext";
+import { fetchLogin } from "@/apis/user/route";
 
 function LoginContent() {
     const router = useRouter();
@@ -69,7 +69,7 @@ function LoginContent() {
 
                 {/* Header */}
                 <div className="text-center mb-7">
-                    <div className="w-[52px] h-[52px] rounded-[14px] bg-blue-50 border border-blue-200 flex items-center justify-center mx-auto mb-5">
+                    <div className="w-[52px] h-[52px] rounded-[14px] bg-indigo-50 border border-indigo-200 flex items-center justify-center mx-auto mb-5">
                         <Image src="/images/logo.png" alt="" height={30} width={30} />
                     </div>
                     <h2 className="text-2xl font-bold tracking-[-0.025em] text-slate-900 mb-1.5">
@@ -97,7 +97,7 @@ function LoginContent() {
                     </label>
                     <div className="relative group">
                         <svg
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-gray-400 group-focus-within:text-blue-600 transition"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-gray-400 group-focus-within:text-indigo-600 transition"
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                             strokeLinecap="round" strokeLinejoin="round"
                         >
@@ -110,7 +110,7 @@ function LoginContent() {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
-                            className="w-full pl-10 pr-4 py-[11px] bg-gray-50 border border-gray-200 rounded-[10px] text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 transition"
+                            className="w-full pl-10 pr-4 py-[11px] bg-gray-50 border border-gray-200 rounded-[10px] text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-600 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition"
                         />
                     </div>
                 </div>
@@ -122,7 +122,7 @@ function LoginContent() {
                     </label>
                     <div className="relative group">
                         <svg
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-gray-400 group-focus-within:text-blue-600 transition"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-gray-400 group-focus-within:text-indigo-600 transition"
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                             strokeLinecap="round" strokeLinejoin="round"
                         >
@@ -135,7 +135,7 @@ function LoginContent() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full pl-10 pr-10 py-[11px] bg-gray-50 border border-gray-200 rounded-[10px] text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 transition"
+                            className="w-full pl-10 pr-10 py-[11px] bg-gray-50 border border-gray-200 rounded-[10px] text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-600 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition"
                         />
                         <button
                             type="button"
@@ -151,7 +151,7 @@ function LoginContent() {
                 <div className="text-center mt-1 mb-5">
                     <span
                         onClick={() => router.push("/forget-password")}
-                        className="text-[12px] font-medium text-blue-600 hover:text-blue-700 cursor-pointer transition"
+                        className="text-[12px] font-medium text-indigo-600 hover:text-indigo-700 cursor-pointer transition"
                     >
                         Forgot Password?
                     </span>
@@ -169,7 +169,7 @@ function LoginContent() {
                     type="button"
                     onClick={handleLogin}
                     disabled={submitting}
-                    className="w-full py-3 text-[15px] font-semibold rounded-[10px] bg-blue-600 text-white transition shadow-[0_1px_3px_rgba(37,99,235,0.25),0_4px_12px_rgba(37,99,235,0.15)] hover:bg-blue-700 hover:-translate-y-[1px] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full py-3 text-[15px] font-semibold rounded-[10px] bg-indigo-600 text-white transition shadow-[0_1px_3px_rgba(79,70,229,0.25),0_4px_12px_rgba(79,70,229,0.15)] hover:bg-indigo-700 hover:-translate-y-[1px] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                     {submitting ? "Signing in..." : "Sign In"}
                 </button>
@@ -200,7 +200,7 @@ function LoginContent() {
                         Don't have an account?{" "}
                         <span
                             onClick={() => router.push("/sign-up")}
-                            className="text-blue-600 font-medium hover:text-blue-700 cursor-pointer transition"
+                            className="text-indigo-600 font-medium hover:text-indigo-700 cursor-pointer transition"
                         >
                             Sign up
                         </span>

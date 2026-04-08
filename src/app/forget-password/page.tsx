@@ -40,7 +40,7 @@ export default function ForgotPasswordUsernamePage() {
     if (loading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
-                <div className="w-10 h-10 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin" />
+                <div className="w-10 h-10 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin" />
                 <p className="text-sm text-slate-500 font-medium">Sending OTP to your email...</p>
             </div>
         );
@@ -72,14 +72,14 @@ export default function ForgotPasswordUsernamePage() {
                             required
                             disabled={loading}
                             placeholder="Enter your email"
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-50"
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 disabled:bg-gray-50"
                         />
                     </div>
 
                     <button
                         type="submit"
                         disabled={loading || !email.trim()}
-                        className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:bg-blue-400 disabled:cursor-not-allowed"
+                        className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition disabled:bg-indigo-400 disabled:cursor-not-allowed"
                     >
                         Send Reset Link
                     </button>
@@ -89,7 +89,7 @@ export default function ForgotPasswordUsernamePage() {
                     Remember your password?{" "}
                     <span
                         onClick={() => router.push("/login")}
-                        className="text-blue-600 font-medium cursor-pointer hover:text-blue-700"
+                        className="text-indigo-600 font-medium cursor-pointer hover:text-indigo-700"
                     >
                         Sign in
                     </span>

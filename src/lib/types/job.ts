@@ -5,20 +5,21 @@ export type EmploymentType = 'Full Time' | 'Part Time' | 'Contract' | 'Freelance
 
 export interface Job {
   id: number;
-  title: string;
-  company: string;
-  company_name?: string;
+  job_title: string;
+  // company: string;
+  company_name: string;
   location: string;
   experience: number;
   employment_type?: string;
   skills: string[];
   description: string;
   responsibilities: string[];
-  postedAt: string;
-  posted_at?: string;
-  workMode: WorkMode;
+  qualifications: string[];
+  // postedAt: string;
+  posted_at: string;
+  // workMode: WorkMode;
   work_mode?: string;
-  logoUrl?: string;
+  // logoUrl?: string;
   logo_url?: string;
   job_min_salary?: number;
   job_max_salary?: number;
@@ -28,10 +29,10 @@ export interface Job {
 
 export interface Application {
   id: number;
-  jobId: number;
-  job?: number;
+  // jobId: number;
+  // job?: number;
   job_id?: number;
-  jobTitle: string;
+  // jobTitle: string;
   job_title?: string;
   company: string;
   company_name?: string;
@@ -43,16 +44,26 @@ export interface Application {
 
 export interface SavedJob {
   id: number;
-  jobId: number;
-  job_id?: number;
-  jobTitle: string;
-  title?: string;
-  company: string;
+  // jobId: number;
+  job_id: number;
+  job_title: string;
+  // title?: string;
+  // company: string;
   company_name?: string;
-  savedAt: string;
+  // savedAt: string;
   saved_at?: string;
   location?: string;
   employment_type?: string;
   salary_currency?: string;
-  min_salary?: number;
+   work_mode?: string;
+
+  job_min_salary?: number;
+  job_max_salary?: number;
+  job_min_exp?: number;
+  job_max_exp?: number;
+  logo_url?: string;
+  skills?: string[];
+  description?: string;
+  responsibilities?: string[];
+  qualifications?: string[];
 }

@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Plus, Lightbulb, Star, Trash2, Edit } from 'lucide-react';
 import { SectionCard } from './SectionCard';
-import { candidateApi } from '@/apis/user/index';
+import { candidateApi } from '@/apis/user/route';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -28,22 +28,24 @@ const PROFICIENCY_OPTIONS = [
   { label: 'Expert', value: 'EXPERT' },
 ];
 
+const DEFAULT_SKILL_FORM = {
+  name: '',
+  skill_id: null,
+  proficiency: 'INTERMEDIATE',
+  years_experience: 0,
+  is_primary: false,
+};
+
 export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isAdding, setIsAdding] = useState(false);
   const { toast } = useToast();
 
-  const [currentSkill, setCurrentSkill] = useState<any>({
-    name: '',
-    skill_id: null,
-    proficiency: 'INTERMEDIATE',
-    years_experience: 0,
-    is_primary: false
-  });
+  const [currentSkill, setCurrentSkill] = useState<any>(DEFAULT_SKILL_FORM);
 
-  // ✅ Backend se skills search karo
   const handleSearch = async (query: string) => {
     setSearch(query);
     if (query.length < 1) {
@@ -52,60 +54,63 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
     }
     try {
       const results = await candidateApi.searchSkills(query);
-      const list = Array.isArray(results) ? results : [];
-      console.log("Search results:", list);
-      setSearchResults(list);
+      setSearchResults(Array.isArray(results) ? results : []);
     } catch {
       setSearchResults([]);
     }
   };
 
-  const handleOpenAddForm = async (skillName: string, skillId?: number) => {
-    setCurrentSkill({
-      name: skillName,
-      skill_id: skillId || null,
-      proficiency: 'INTERMEDIATE',
-      years_experience: 0,
-      is_primary: false,
-      isEdit: false
-    });
-    setIsAddOpen(false);
+  // ── Add: save immediately with defaults, no form popup ───────────────────
+  const handleAddSkill = async (skillName: string, skillId?: number) => {
+    setPopoverOpen(false);
     setSearch('');
     setSearchResults([]);
-    setIsFormOpen(true);
+    setIsAdding(true);
+
+    try {
+      const payload = {
+        skill_id: skillId || null,
+        name: skillId ? undefined : skillName,
+        proficiency: 'INTERMEDIATE',
+        years_experience: 0,
+        is_primary: false,
+      };
+      const savedSkill: Skill = await candidateApi.addSkill(payload);
+      onSave([...data, savedSkill]);
+      toast({ title: "Skill added" });
+    } catch {
+      toast({ title: "Failed to add skill", variant: "destructive" });
+    } finally {
+      setIsAdding(false);
+    }
   };
 
+  // ── Edit: open form pre-filled ────────────────────────────────────────────
   const handleOpenEditForm = (skill: Skill) => {
     setCurrentSkill({
       ...skill,
       name: (skill as any).skill_name || skill.name,
-      isEdit: true
+      isEdit: true,
     });
     setIsFormOpen(true);
   };
 
+  // ── Save edits ────────────────────────────────────────────────────────────
   const handleFinalSave = async () => {
     try {
-      let savedSkill: Skill;
       const payload = {
         skill_id: currentSkill.skill_id,
         name: currentSkill.skill_id ? undefined : currentSkill.name,
         proficiency: currentSkill.proficiency,
         years_experience: parseFloat(currentSkill.years_experience) || 0,
-        is_primary: currentSkill.is_primary
+        is_primary: currentSkill.is_primary,
       };
 
-      if (currentSkill.isEdit) {
-        savedSkill = await candidateApi.updateSkill(currentSkill.id, payload);
-        onSave(data.map(s => s.id === currentSkill.id ? savedSkill : s));
-        toast({ title: "Skill updated" });
-      } else {
-        savedSkill = await candidateApi.addSkill(payload);
-        onSave([...data, savedSkill]);
-        toast({ title: "Skill added successfully" });
-      }
+      const savedSkill: Skill = await candidateApi.updateSkill(currentSkill.id, payload);
+      onSave(data.map(s => s.id === currentSkill.id ? savedSkill : s));
+      toast({ title: "Skill updated" });
       setIsFormOpen(false);
-    } catch (error) {
+    } catch {
       toast({ title: "Failed to save skill", variant: "destructive" });
     }
   };
@@ -116,7 +121,7 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
       onSave(data.filter(s => s.id !== skillId));
       setIsFormOpen(false);
       toast({ title: "Skill removed", variant: "destructive" });
-    } catch (error) {
+    } catch {
       toast({ title: "Failed to remove", variant: "destructive" });
     }
   };
@@ -126,9 +131,12 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
       title="Skills"
       description="Manage your expertise and proficiency levels."
       actions={
-        <Popover open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Add Skill</Button>
+            <Button disabled={isAdding}>
+              <Plus className="mr-2 h-4 w-4" />
+              {isAdding ? 'Adding...' : 'Add Skill'}
+            </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[300px] p-0" align="end">
             <Command>
@@ -142,7 +150,7 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
                   {search && (
                     <button
                       type="button"
-                      onClick={() => handleOpenAddForm(search)}
+                      onClick={() => handleAddSkill(search)}
                       className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-100 hover:border-slate-300 hover:shadow-sm"
                     >
                       <span className="text-base leading-none">+</span>
@@ -150,7 +158,6 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
                     </button>
                   )}
                 </CommandEmpty>
-                {/* ✅ Backend se real skills */}
                 {searchResults.length > 0 && (
                   <CommandGroup heading="Results">
                     {searchResults
@@ -158,7 +165,7 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
                       .map((skill: any) => (
                         <CommandItem
                           key={skill.id}
-                          onSelect={() => handleOpenAddForm(skill.name, skill.id)}
+                          onSelect={() => handleAddSkill(skill.name, skill.id)}
                         >
                           {skill.name}
                         </CommandItem>
@@ -171,16 +178,16 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
         </Popover>
       }
     >
-      {/* Skill Details Form Dialog */}
+      {/* Edit-only dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{currentSkill.isEdit ? 'Edit Skill' : 'Add Skill Details'}</DialogTitle>
-            <DialogDescription>Set proficiency and experience for {currentSkill.name}.</DialogDescription>
+            <DialogTitle>Edit Skill</DialogTitle>
+            <DialogDescription>Update proficiency and experience for {currentSkill.name}.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="proficiency" className="text-right">Level</Label>
+              <Label className="text-right">Level</Label>
               <Select
                 value={currentSkill.proficiency}
                 onValueChange={(val) => setCurrentSkill({ ...currentSkill, proficiency: val })}
@@ -196,9 +203,8 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="experience" className="text-right">Years</Label>
+              <Label className="text-right">Years</Label>
               <Input
-                id="experience"
                 type="number"
                 step="0.5"
                 className="col-span-3"
@@ -207,21 +213,18 @@ export default function SkillsSection({ data, onSave }: SkillsSectionProps) {
               />
             </div>
             <div className="flex items-center justify-end space-x-2">
-              <Label htmlFor="primary">Mark as Primary</Label>
+              <Label>Mark as Primary</Label>
               <Switch
-                id="primary"
                 checked={currentSkill.is_primary}
                 onCheckedChange={(val) => setCurrentSkill({ ...currentSkill, is_primary: val })}
               />
             </div>
           </div>
           <DialogFooter className="flex justify-between sm:justify-between">
-            {currentSkill.isEdit && (
-              <Button variant="destructive" onClick={() => handleRemoveSkill(currentSkill.id)}>
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </Button>
-            )}
-            <Button onClick={handleFinalSave}>Save Skill</Button>
+            <Button variant="destructive" onClick={() => handleRemoveSkill(currentSkill.id)}>
+              <Trash2 className="mr-2 h-4 w-4" /> Delete
+            </Button>
+            <Button onClick={handleFinalSave}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
