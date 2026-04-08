@@ -22,14 +22,12 @@ interface BasicInfoFormProps {
   onSave: (data: Candidate) => void;
 }
 
-interface Country {
+interface CityLocation {
   id: number;
-  name: string;
-}
-
-interface State {
-  id: number;
-  name: string;
+  city: string;
+  state: string;
+  country: string;
+  label: string;
 }
 
 const getCleanData = (data: any, total_experience_months: number) => {
@@ -43,15 +41,13 @@ const getCleanData = (data: any, total_experience_months: number) => {
     expected_salary_amount: data.expected_salary_amount,
     salary_period: data.salary_period,
     notice_period_days: data.notice_period_days,
-    city: data.city,
-    state: data.state_id,
-    country: data.country_id,
-
-
   };
 
-
-
+  // Only include location if it's defined
+  if (data.location_id) {
+    payload.location_id = data.location_id;
+  }
+  console.log("Prepared payload for API:", payload);
   return payload;
 };
 
@@ -59,124 +55,78 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [states, setStates] = useState<State[]>([]);
-  const [loadingCountries, setLoadingCountries] = useState(false);
-  const [loadingStates, setLoadingStates] = useState(false);
-  const [countrySearch, setCountrySearch] = useState('');
-  const [stateSearch, setStateSearch] = useState('');
+  const [locations, setLocations] = useState<CityLocation[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [selectedLocationId, setSelectedLocationId] = useState<number | undefined>(data.location_id ?? undefined);
 
   const onSaveRef = useRef(onSave);
   const dataRef = useRef(data);
-  const countryDebounceRef = useRef<NodeJS.Timeout | null>(null);
-  const stateDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const locationDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     onSaveRef.current = onSave;
     dataRef.current = data;
   }, [onSave, data]);
 
-  // Search countries with debounce - only when user types
+  // Search locations with debounce
   useEffect(() => {
-    if (!countrySearch) {
-      setCountries([]);
-      return;
+    if (locationDebounceRef.current) {
+      clearTimeout(locationDebounceRef.current);
     }
 
-    if (countryDebounceRef.current) {
-      clearTimeout(countryDebounceRef.current);
-    }
-
-    countryDebounceRef.current = setTimeout(() => {
-      setLoadingCountries(true);
-      candidateApi.getCountries(countrySearch)
-        .then(res => {
-          const countryList = res?.results ?? res ?? [];
-          setCountries(countryList);
-        })
-        .catch((err) => {
-          console.error('Failed to load countries:', err);
-          toast({
-            title: "Error",
-            description: "Failed to load countries.",
-            variant: "destructive",
-          });
-        })
-        .finally(() => setLoadingCountries(false));
-    }, 300);
-
-    return () => {
-      if (countryDebounceRef.current) {
-        clearTimeout(countryDebounceRef.current);
-      }
-    };
-  }, [countrySearch, toast]);
-
-  // Search states with debounce
-  useEffect(() => {
-    if (stateDebounceRef.current) {
-      clearTimeout(stateDebounceRef.current);
-    }
-
-    stateDebounceRef.current = setTimeout(() => {
-      if (!stateSearch) {
-        setStates([]);
+    locationDebounceRef.current = setTimeout(() => {
+      if (!locationSearch) {
+        setLocations([]);
         return;
       }
 
-      setLoadingStates(true);
-      candidateApi.getStates(stateSearch)
+      setLoadingLocations(true);
+      candidateApi.getCities(locationSearch)
         .then(res => {
-          const stateList = res?.results ?? res ?? [];
-          setStates(stateList);
+          const locationList = res?.results ?? res ?? [];
+          setLocations(locationList);
+          console.log("Loaded locations:", res);
         })
         .catch((err) => {
-          console.error('Failed to load states:', err);
+          console.error('Failed to load locations:', err);
           toast({
             title: "Error",
-            description: "Failed to load states.",
+            description: "Failed to load locations.",
             variant: "destructive",
           });
         })
-        .finally(() => setLoadingStates(false));
+        .finally(() => setLoadingLocations(false));
     }, 300);
 
     return () => {
-      if (stateDebounceRef.current) {
-        clearTimeout(stateDebounceRef.current);
+      if (locationDebounceRef.current) {
+        clearTimeout(locationDebounceRef.current);
       }
     };
-  }, [stateSearch, toast]);
+  }, [locationSearch, toast]);
 
   const form = useForm<BasicInfoFormData>({
     resolver: zodResolver(basicInfoSchema),
     defaultValues: {
       ...data,
-      country_id: undefined,
-      state_id: undefined,
-      city: undefined,
       experience_years: data.total_experience_months ? Math.floor(data.total_experience_months / 12) : 0,
       experience_months: data.total_experience_months ? data.total_experience_months % 12 : 0,
     },
   });
 
   const onSubmit = async (values: BasicInfoFormData) => {
-    const { experience_years, experience_months, country_id, state_id, city, ...rest } = values;
+    const { experience_years, experience_months, ...rest } = values;
     const total_experience_months = (Number(experience_years) || 0) * 12 + (Number(experience_months) || 0);
 
     const submitData: any = {
       ...dataRef.current,
       ...rest,
       total_experience_months,
-      country_id,
-      state_id,
-      city,
-      country_name: countrySearch,
-      state_name: stateSearch,
+      location_id: selectedLocationId,
     };
 
     const cleanData = getCleanData(submitData, total_experience_months);
-    console.log("Submitting basic info:", cleanData);
     try {
       setIsSaving(true);
       onSaveRef.current(submitData);
@@ -264,112 +214,45 @@ export default function BasicInfoForm({ data, onSave }: BasicInfoFormProps) {
                   )}
                 />
 
-                {/* Country Search */}
-                <FormField
-                  control={form.control}
-                  name="country_id"
-                  render={({ field }) => (
-                    <FormItem className="relative">
-                      <FormLabel>Country</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            placeholder="Type to search country..."
-                            value={countrySearch}
-                            onChange={(e) => {
-                              setCountrySearch(e.target.value);
-                              if (!e.target.value) {
-                                field.onChange(undefined);
-                              }
-                            }}
-                            disabled={loadingCountries}
-                          />
-                          {loadingCountries && (
-                            <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground" />
-                          )}
-                          {countries.length > 0 && countrySearch && (
-                            <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md">
-                              {countries.map((country) => (
-                                <div
-                                  key={country.id}
-                                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                  onClick={() => {
-                                    field.onChange(country.id);
-                                    setCountrySearch(country.name);
-                                  }}
-                                >
-                                  {country.name}
-                                </div>
-                              ))}
+                {/* Location Search */}
+                <FormItem className="relative">
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        placeholder="Type to search location..."
+                        value={locationSearch}
+                        onChange={(e) => {
+                          setLocationSearch(e.target.value);
+                          if (!e.target.value) {
+                            setSelectedLocationId(undefined);
+                          }
+                        }}
+                        disabled={loadingLocations}
+                      />
+                      {loadingLocations && (
+                        <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground" />
+                      )}
+                      {locations.length > 0 && locationSearch && (
+                        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md">
+                          {locations.map((location) => (
+                            <div
+                              key={location.id}
+                              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => {
+                                setSelectedLocationId(location.id);
+                                setLocationSearch(location.label);
+                                setLocations([]); // Close dropdown
+                              }}
+                            >
+                              {location.label}
                             </div>
-                          )}
+                          ))}
                         </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* State Search */}
-                <FormField
-                  control={form.control}
-                  name="state_id"
-                  render={({ field }) => (
-                    <FormItem className="relative">
-                      <FormLabel>State</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            placeholder="Type to search state..."
-                            value={stateSearch}
-                            onChange={(e) => {
-                              setStateSearch(e.target.value);
-                              if (!e.target.value) {
-                                field.onChange(undefined);
-                              }
-                            }}
-                            disabled={loadingStates}
-                          />
-                          {loadingStates && (
-                            <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground" />
-                          )}
-                          {states.length > 0 && stateSearch && (
-                            <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md">
-                              {states.map((state) => (
-                                <div
-                                  key={state.id}
-                                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                  onClick={() => {
-                                    field.onChange(state.id);
-                                    setStateSearch(state.name);
-                                  }}
-                                >
-                                  {state.name}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* City Input */}
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Mumbai" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      )}
+                    </div>
+                  </FormControl>
+                </FormItem>
 
                 <FormField
                   control={form.control}

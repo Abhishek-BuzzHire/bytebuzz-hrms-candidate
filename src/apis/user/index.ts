@@ -229,6 +229,9 @@ export const candidateApi = {
     },
     async getStates(query: string = '') {
         return (await api.get(`api/states/search`, { params: { q: query } })).data;
+    },
+    async getCities(query: string = '') {
+        return (await api.get(`api/city-search`, { params: { q: query } })).data;
     }
 };
 
