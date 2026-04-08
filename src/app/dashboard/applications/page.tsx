@@ -5,7 +5,7 @@ import { useApplications } from '@/hooks/jobs/use-jobs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Calendar, Info, ChevronRight } from 'lucide-react';
+import { Briefcase, Calendar, Info, ChevronRight, Bookmark } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ApplicationsPage() {
@@ -101,11 +101,14 @@ export default function ApplicationsPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-24 border-2 border-dashed border-indigo-100 rounded-2xl">
-          <Briefcase className="w-12 h-12 text-indigo-200 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">No applications yet</h2>
-          <Button className="bg-indigo-600" asChild>
-            <Link href="/dashboard/jobs">Search for jobs</Link>
+        <div className="text-center py-24 border-2 border-dashed rounded-2xl bg-white/80">
+          <Briefcase className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">No Applied jobs yet</h2>
+          <p className="text-muted-foreground mb-8">
+            Apply to the ones you like.
+          </p>
+          <Button asChild>
+            <Link href="/dashboard/jobs">Browse Jobs</Link>
           </Button>
         </div>
       )}

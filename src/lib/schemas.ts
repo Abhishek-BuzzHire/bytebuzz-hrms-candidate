@@ -12,4 +12,5 @@ export const basicInfoSchema = z.object({
   salary_currency: z.string().optional(),
   salary_period: z.enum(["YEAR", "MONTH"]),
   notice_period_days: z.coerce.number().optional(),
+  location_text: z.string().optional().nullable(),
 });

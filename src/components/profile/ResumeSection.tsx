@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface ResumeSectionProps {
   // ✅ FIX: Ab ye array nahi, sirf single object (ya null) accept karega
-  data: Resume | null; 
+  data: Resume | null;
   onSave: (data: Resume | null) => void;
 }
 
@@ -27,7 +27,7 @@ export default function ResumeSection({ data, onSave }: ResumeSectionProps) {
   const handleFileChange = async (files: FileList | null) => {
     if (files && files.length > 0) {
       const file = files[0];
-      
+
       if (file.type !== "application/pdf") {
         toast({
           title: "Invalid File Type",
@@ -43,10 +43,11 @@ export default function ResumeSection({ data, onSave }: ResumeSectionProps) {
       setIsUploading(true);
       try {
         const newResume = await candidateApi.uploadResume(formData);
-        
+
         // ✅ FIX: List/Array ki jagah direct naya resume object bhej rahe hain
-        onSave(newResume); 
-        
+        onSave(newResume);
+        console.log("Upload successful, new resume:", newResume);
+
         toast({
           title: "Resume Uploaded",
           description: `${file.name} is now your active resume.`,
@@ -67,7 +68,7 @@ export default function ResumeSection({ data, onSave }: ResumeSectionProps) {
     try {
       await candidateApi.deleteResume();
       // ✅ FIX: Delete hone par data ko null kar diya
-      onSave(null); 
+      onSave(null);
       toast({ title: "Resume deleted", variant: "destructive" });
     } catch (error) {
       toast({ title: "Failed to delete", variant: "destructive" });
@@ -98,21 +99,41 @@ export default function ResumeSection({ data, onSave }: ResumeSectionProps) {
           <div className="text-center">
             {isUploading ? (
               <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" />
+            ) : data?.file_name ? (
+              <CheckCircle2 className="mx-auto h-12 w-12 text-green-500" />
             ) : (
               <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
             )}
+
             <div className="mt-4 flex text-sm leading-6 text-muted-foreground justify-center">
-              <span className="font-semibold text-primary hover:underline">Upload a file</span>
-              <p className="pl-1">or drag and drop</p>
+              {isUploading ? (
+                <p className="font-semibold text-primary">Uploading your resume...</p>
+              ) : data?.file_name ? (
+                <>
+                  <span className="font-semibold text-primary hover:underline">Update resume</span>
+                  <p className="pl-1">or drag and drop a new file</p>
+                </>
+              ) : (
+                <>
+                  <span className="font-semibold text-primary hover:underline">Upload a file</span>
+                  <p className="pl-1">or drag and drop</p>
+                </>
+              )}
             </div>
-            <input 
-                type="file" 
-                className="sr-only" 
-                onChange={(e) => handleFileChange(e.target.files)} 
-                accept=".pdf" 
-                disabled={isUploading}
+
+            <input
+              type="file"
+              className="sr-only"
+              onChange={(e) => handleFileChange(e.target.files)}
+              accept=".pdf"
+              disabled={isUploading}
             />
-            <p className="text-xs text-muted-foreground mt-1">PDF up to 10MB</p>
+
+            <p className="text-xs text-muted-foreground mt-1">
+              {data?.file_name
+                ? "Uploading a new file will replace your current resume"
+                : "PDF up to 10MB"}
+            </p>
           </div>
         </label>
 
@@ -140,9 +161,9 @@ export default function ResumeSection({ data, onSave }: ResumeSectionProps) {
                     <CheckCircle2 className="h-3 w-3 mr-1" /> Active
                   </Badge>
                 )}
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="text-destructive hover:bg-destructive/10"
                   onClick={handleDelete}
                 >
