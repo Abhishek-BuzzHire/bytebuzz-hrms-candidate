@@ -14,7 +14,7 @@ export default function ApplicationsPage() {
   const getStatusBadge = (status: string) => {
     const s = status?.toLowerCase();
     switch (s) {
-      case 'applied': return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">Applied</Badge>;
+      case 'applied': return <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none">Applied</Badge>;
       case 'under review': return <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none">Under Review</Badge>;
       case 'interview': return <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-none">Interview</Badge>;
       case 'offer': return <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-200 border-none">Offer</Badge>;
@@ -24,8 +24,9 @@ export default function ApplicationsPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <header>
+    <div className="min-h-full bg-slate-50/50 p-6 rounded-3xl">
+
+      <header className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Your Applications</h1>
         <p className="text-muted-foreground">Keep track of your job application pipeline and next steps.</p>
       </header>
@@ -40,20 +41,20 @@ export default function ApplicationsPage() {
         <div className="space-y-4">
           {applications.map(app => (
             /* ✅ Card update: Sirf card ke around blue border aur halka tint rakha hai */
-            <Card 
-              key={app.id} 
-              className="shadow-sm border-blue-200 bg-blue-50/20 hover:border-blue-400 transition-all overflow-hidden"
+            <Card
+              key={app.id}
+              className="shadow-sm border-indigo-200 bg-indigo-50/20 hover:border-indigo-400 transition-all overflow-hidden"
             >
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-center gap-4">
                     {/* ✅ Icon container white to pop on tinted card */}
-                    <div className="w-14 h-14 bg-white border border-blue-100 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
-                      <Briefcase className="w-7 h-7 text-blue-500" />
+                    <div className="w-14 h-14 bg-white border border-indigo-100 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                      <Briefcase className="w-7 h-7 text-indigo-500" />
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-lg font-bold leading-tight">{app.job_title}</h3>
-                      <p className="text-sm font-medium text-blue-600">{app.company_name}</p>
+                      <p className="text-sm font-medium text-indigo-600">{app.company_name}</p>
                     </div>
                   </div>
 
@@ -62,7 +63,7 @@ export default function ApplicationsPage() {
                       <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Applied Date</p>
                       <div className="flex items-center gap-2 text-sm font-semibold">
                         <Calendar className="w-4 h-4 text-slate-400" />
-                        {app.applied_at 
+                        {app.applied_at
                           ? new Date(app.applied_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
                           : 'Date N/A'}
                       </div>
@@ -76,12 +77,12 @@ export default function ApplicationsPage() {
                     <div className="space-y-1 md:block hidden">
                       <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Last Update</p>
                       <p className="text-sm font-semibold text-slate-500 italic">
-                         {app.updated_at ? new Date(app.updated_at).toLocaleDateString() : 'Just now'}
+                        {app.updated_at ? new Date(app.updated_at).toLocaleDateString() : 'Just now'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  {/* <div className="flex gap-2">
                      <Button variant="outline" size="sm" className="gap-2 bg-white hover:bg-blue-50 border-blue-100">
                        <Info className="w-4 h-4" />
                        Status Info
@@ -93,17 +94,17 @@ export default function ApplicationsPage() {
                          <ChevronRight className="w-4 h-4" />
                        </Link>
                      </Button>
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <div className="text-center py-24 border-2 border-dashed border-blue-100 rounded-2xl">
-          <Briefcase className="w-12 h-12 text-blue-200 mx-auto mb-4" />
+        <div className="text-center py-24 border-2 border-dashed border-indigo-100 rounded-2xl">
+          <Briefcase className="w-12 h-12 text-indigo-200 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">No applications yet</h2>
-          <Button className="bg-blue-600" asChild>
+          <Button className="bg-indigo-600" asChild>
             <Link href="/dashboard/jobs">Search for jobs</Link>
           </Button>
         </div>

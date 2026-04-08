@@ -70,7 +70,7 @@ function SetPasswordForm() {
                 </div>
                 <button
                     onClick={() => router.push("/login")}
-                    className="w-full py-3 font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-sm transition"
+                    className="w-full py-3 font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 text-sm transition"
                 >
                     Back to Sign In
                 </button>
@@ -105,7 +105,7 @@ function SetPasswordForm() {
                             required
                             disabled={loading}
                             placeholder="Enter new password"
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-50"
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 disabled:bg-gray-50"
                         />
                         <button
                             type="button"
@@ -130,7 +130,7 @@ function SetPasswordForm() {
                             required
                             disabled={loading}
                             placeholder="Confirm new password"
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-50"
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 disabled:bg-gray-50"
                         />
                         <button
                             type="button"
@@ -145,7 +145,7 @@ function SetPasswordForm() {
                 <button
                     type="submit"
                     disabled={loading || !newPassword || !confirmPassword}
-                    className="w-full mt-2 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:bg-blue-400 disabled:cursor-not-allowed"
+                    className="w-full mt-2 rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition disabled:bg-indigo-400 disabled:cursor-not-allowed"
                 >
                     {loading ? "Updating..." : "Reset Password"}
                 </button>

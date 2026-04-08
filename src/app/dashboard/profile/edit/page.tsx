@@ -5,8 +5,6 @@ import ProfileEditor from '@/components/profile/ProfileEditor';
 import { candidateApi } from '@/apis/user/index';
 import type { Candidate, Education, Experience, Resume, Skill } from '@/lib/types';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-// Mirrors ProfileEditorProps['initialData'] exactly
 interface ProfileData {
   basicInfo: Candidate;
   experience: Experience[];
@@ -19,8 +17,6 @@ type PageState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'ready'; data: ProfileData };
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function toArray<T>(res: any): T[] {
   if (Array.isArray(res)) return res as T[];
@@ -36,7 +32,18 @@ function resolveResume(resumes: any): Resume | null {
   return arr.find((r) => r.is_active) ?? arr[0] ?? null;
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// Flatten the nested location object that getBasicInfo() returns into the
+// flat fields that BasicInfoForm expects — no separate location API needed.
+function flattenBasicInfo(raw: any): Candidate {
+  const loc = raw.location;
+  return {
+    ...raw,
+    location_id: loc?.id ?? raw.location_id ?? undefined,
+    location_text: loc
+      ? [loc.city, loc.state, loc.country].filter(Boolean).join(', ')
+      : raw.location_text ?? '',
+  };
+}
 
 function ProfileSkeleton() {
   return (
@@ -70,8 +77,6 @@ function ProfileSkeleton() {
   );
 }
 
-// ── Error state ───────────────────────────────────────────────────────────────
-
 function ProfileError({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center px-4">
@@ -90,31 +95,33 @@ function ProfileError({ message, onRetry }: { message: string; onRetry: () => vo
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-
 export default function ProfileEditPage() {
   const [state, setState] = useState<PageState>({ status: 'loading' });
 
   const fetchProfile = useCallback(async () => {
     setState({ status: 'loading' });
     try {
-      const [basicInfo, experience, education, skills, resumes] = await Promise.all([
-        candidateApi.getProfile(),
+      const [basicInfo, experience, education, skills, resumes,] = await Promise.all([
+        candidateApi.getBasicInfo(),
         candidateApi.getExperiences(),
         candidateApi.getEducations(),
         candidateApi.getSkills(),
         candidateApi.getResumes(),
       ]);
 
+      console.log("Fetched basic info data:", { basicInfo });
+
       setState({
         status: 'ready',
         data: {
-          basicInfo: basicInfo as Candidate,
+          basicInfo: flattenBasicInfo(basicInfo),
           experience: toArray<Experience>(experience),
           education: toArray<Education>(education),
           skills: toArray<Skill>(skills),
           resume: resolveResume(resumes),
+
         },
+
       });
     } catch (err: any) {
       const raw: string = err?.message ?? 'Something went wrong.';

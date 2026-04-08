@@ -60,8 +60,8 @@ export default function SignupPage() {
                 <div className="w-full max-w-md text-center space-y-5 px-10 py-12">
 
                     {/* Icon */}
-                    <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto shadow-sm">
-                        <Mail className="w-7 h-7 text-blue-500" />
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto shadow-sm">
+                        <Mail className="w-7 h-7 text-indigo-500" />
                     </div>
 
                     {/* Text */}
@@ -84,7 +84,7 @@ export default function SignupPage() {
                     {/* Back to login */}
                     <button
                         onClick={() => router.push("/login")}
-                        className="w-full py-3 font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-sm transition"
+                        className="w-full py-3 font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 text-sm transition"
                     >
                         Back to Sign In
                     </button>
@@ -101,7 +101,7 @@ export default function SignupPage() {
 
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
                             <Image src="/images/logo.png" alt="" height={26} width={26} />
                         </div>
                         <h2 className="text-[22px] font-bold tracking-tight text-slate-900 mb-1">
@@ -185,7 +185,7 @@ export default function SignupPage() {
                         {/* Submit */}
                         <button
                             type="submit"
-                            className="w-full py-3 font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+                            className="w-full py-3 font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
                         >
                             Create Account
                         </button>
@@ -197,7 +197,7 @@ export default function SignupPage() {
                         Already have an account?{" "}
                         <span
                             onClick={() => router.push("/login")}
-                            className="text-blue-600 cursor-pointer"
+                            className="text-indigo-600 cursor-pointer"
                         >
                             Sign in
                         </span>

@@ -9,10 +9,10 @@ export default function DashboardLayout({
 }) {
   return (
     <ProfileCompletionProvider>
-      <div className="min-h-screen bg-secondary/20">
+      <div className="min-h-screen bg-gray-50">
         <Sidebar />
         <main className="pl-64">
-          <div className="p-8 max-w-7xl mx-auto">{children}</div>
+          <div className="pt  max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </ProfileCompletionProvider>

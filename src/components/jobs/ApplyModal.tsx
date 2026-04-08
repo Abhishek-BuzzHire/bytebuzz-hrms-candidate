@@ -41,7 +41,7 @@ export default function ApplyModal({ job, open, onOpenChange, onSubmit }: ApplyM
         <DialogHeader>
           <DialogTitle>Confirm Application</DialogTitle>
           <DialogDescription>
-            You're applying for <strong>{job?.title}</strong> at {job?.company_name}. Ready to submit?
+            You're applying for <strong>{job?.job_title}</strong> at {job?.company_name}. Ready to submit?
           </DialogDescription>
         </DialogHeader>
 

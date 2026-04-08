@@ -74,9 +74,9 @@ export default function JobCard({ job, isActive, onClick, onSave, isSaved, isApp
           <div className="flex items-center gap-3">
 
             <div>
-              <h3 className="font-bold text-sm leading-tight text-gray-900 line-clamp-1">{job.title}</h3>
+              <h3 className="font-bold text-md leading-tight text-gray-900 line-clamp-1">{job.job_title}</h3>
               <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-xs text-gray-500">{job.company_name}</p>
+                <p className="text-sm text-gray-500">{job.company_name}</p>
                 {isApplied && (
                   <span className="flex items-center gap-1 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-md text-[10px] font-bold">
                     <CheckCircle2 className="w-3 h-3" />
@@ -92,30 +92,29 @@ export default function JobCard({ job, isActive, onClick, onSave, isSaved, isApp
             className="w-8 h-8 shrink-0 text-gray-400"
             onClick={(e) => { e.stopPropagation(); onSave?.(e); }}
           >
-            <Bookmark className={cn("w-4 h-4", isSaved && "fill-blue-600 text-blue-600")} />
+            <Bookmark className={cn("w-4 h-4", isSaved && "fill-indigo-600 text-indigo-600")} />
           </Button>
         </div>
 
         {/* Meta */}
-        <div className="flex flex-wrap gap-x-3 gap-y-1 mb-2.5 text-xs text-gray-500">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 mb-2.5 text-sm font-semibold text-indigo-700">
           <span className="flex items-center gap-1">
-            <MapPin className="w-3 h-3 text-blue-500" />
+            <MapPin className="w-3 h-3 text-indigo-500" />
             {job.location}
           </span>
           <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3 text-blue-500" />
+            <Clock className="w-3 h-3 text-indigo-500" />
             {min_exp_yrs} - {max_exp_yrs} yrs
           </span>
           <span className="flex items-center gap-1">
-            <Briefcase className="w-3 h-3 text-blue-500" />
+            <Briefcase className="w-3 h-3 text-indigo-500" />
             {job.employment_type?.replace(/_/g, ' ')}
           </span>
-          {hasSalary && (
-            <span className="flex items-center gap-1 font-medium text-blue-700">
-              <IndianRupee className="w-3 h-3 text-blue-500" />
-              {formatSalary(job.job_min_salary!)} – {formatSalary(job.job_max_salary!)} / yr
-            </span>
-          )}
+          <span className="flex items-center gap-1 font-medium text-indigo-700">
+            <IndianRupee className="w-3 h-3 text-indigo-500" />
+            {formatSalary(job.job_min_salary!)} – {formatSalary(job.job_max_salary!)} / yr
+          </span>
+
         </div>
 
         {/* Skills as compact blue-gray boxes */}
@@ -124,13 +123,13 @@ export default function JobCard({ job, isActive, onClick, onSave, isSaved, isApp
             {displaySkills.map((skill, idx) => (
               <span
                 key={idx}
-                className="px-2 py-0.5 border border-blue-200 bg-blue-50 text-blue-700 rounded-full"
+                className="px-2 py-0.5 border border-indigo-200 bg-indigo-50 text-indigo-700 rounded-full"
               >
                 {skill}
               </span>
             ))}
             {remainingSkills > 0 && (
-              <span className="px-2 py-0.5 border border-blue-200 bg-blue-50 text-blue-700 rounded-full">
+              <span className="px-2 py-0.5 border border-indigo-200 bg-indigo-50 text-indigo-700 rounded-full">
                 +{remainingSkills}
               </span>
             )}

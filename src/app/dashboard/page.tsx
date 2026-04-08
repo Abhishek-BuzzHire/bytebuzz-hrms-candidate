@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'Active Now': return <TrendingUp className="w-3 h-3 text-green-600" />;
-      case 'Under Review': return <Clock className="w-3 h-3 text-blue-600" />;
+      case 'Under Review': return <Clock className="w-3 h-3 text-indigo-600" />;
       case 'Rejected': return <XCircle className="w-3 h-3 text-red-600" />;
       default: return <CheckCircle2 className="w-3 h-3 text-green-600" />;
     }
@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const offerCount = (applications || []).filter(a => a.status === 'Offer').length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-4">
       {/* Enhanced Header */}
       <header className="flex justify-between items-center bg-white rounded-xl p-6 shadow-sm border border-gray-100/50">
         <div>
@@ -47,7 +47,6 @@ export default function DashboardPage() {
             <Link href="/dashboard/profile/edit">Update Profile</Link>
           </Button>
           <Button className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 text-white border-none font-semibold text-base">Upload CV</Button>
-          <UserProfilePopover />
         </div>
       </header>
 
@@ -119,7 +118,7 @@ export default function DashboardPage() {
                           <Briefcase className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-sm text-gray-900">{app.job_title || app.jobTitle}</h4>
+                          <h4 className="font-bold text-sm text-gray-900">{app.job_title || app.job_title}</h4>
                           <p className="text-xs text-gray-600 mt-1">
                             {app.company_name || app.company} • Applied on {new Date(app.applied_at || app.appliedDate).toLocaleDateString()}
                           </p>
@@ -190,8 +189,8 @@ export default function DashboardPage() {
                           <Briefcase className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0">
-                          <h4 className="font-bold text-sm text-gray-900 truncate">{saved.title || saved.jobTitle}</h4>
-                          <p className="text-xs text-gray-600 truncate mt-1">{saved.company_name || saved.company}</p>
+                          <h4 className="font-bold text-sm text-gray-900 truncate">{saved.job_title || saved.job_title}</h4>
+                          <p className="text-xs text-gray-600 truncate mt-1">{saved.company_name || saved.company_name}</p>
                         </div>
                       </div>
                       <div className="flex gap-2">

@@ -12,14 +12,14 @@ import {
   Settings,
   HelpCircle,
   LogOut,
-  Search
+  Search,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
-import { useProfileCompletion } from "@/components/profile/ProfileCompletionContext";
-
+import UserProfilePopover from './UserProfilePopover';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -30,13 +30,13 @@ const navItems = [
 ];
 
 const secondaryItems = [
-  { icon: HelpCircle, label: 'Support', href: '#' },
-  { icon: Settings, label: 'Settings', href: '#' },
+  { icon: HelpCircle, label: 'Support', href: '/dashboard/support' },
+  { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ];
 
 
 export default function Sidebar() {
-  const { completion } = useProfileCompletion(); const pathname = usePathname();
+  const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth(); // ✅ real backend data
 
@@ -46,7 +46,7 @@ export default function Sidebar() {
     : "U";
 
   return (
-    <aside className="w-64 h-screen bg-white border-r flex flex-col fixed left-0 top-0 z-40">
+    <aside className="w-64 h-screen bg-white border-r-2 border-gray-200 flex flex-col fixed left-0 top-0 z-40 shadow-sm">
       <div className="p-6">
         <div className="flex items-center mb-8">
           <Image
@@ -57,16 +57,9 @@ export default function Sidebar() {
           />
         </div>
 
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-full bg-secondary/50 rounded-md py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
 
-        <nav className="space-y-1">
+
+        <nav className="space-y-1.5">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -74,83 +67,71 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all group relative",
                   isActive
-                    ? "text-white"
-                    : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                    ? "text-white shadow-md"
+                    : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-700"
                 )}
                 style={isActive ? {
-                  background: 'linear-gradient(135deg,#1d4ed8,#2563eb)',
+                  background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)',
                   color: 'white',
                 } : {}}
               >
-                <item.icon className="w-4 h-4" />
-                {item.label}
+                <item.icon className={cn("w-5 h-5", isActive ? "text-white" : "text-gray-500 group-hover:text-indigo-600")} />
+                <span>{item.label}</span>
+
+                {isActive && (
+                  <ChevronRight className="w-4 h-4 ml-auto text-white opacity-80" />
+                )}
+
               </Link>
             );
           })}
         </nav>
       </div>
 
-      <div className="mt-auto px-6 pb-6 space-y-6">
-        {completion < 100 && (
-          <Link
-            href="/dashboard/profile/edit"
-            className="block rounded-xl border p-4 bg-secondary/40 hover:bg-secondary/60 transition"
-          >
-            <p className="text-sm font-semibold">Complete your profile</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {completion}% completed
-            </p>
+      <div className="mt-auto px-6 pb-6 space-y-5">
 
-            <div className="mt-3 h-2 bg-secondary rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all"
-                style={{ width: `${completion}%` }}
-              />
-            </div>
-          </Link>
-        )}
 
         <nav className="space-y-1">
-          {secondaryItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-secondary/80 hover:text-foreground transition-colors"
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </Link>
-          ))}
+          {secondaryItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all group relative",
+                  isActive
+                    ? "text-white shadow-md"
+                    : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-700"
+                )}
+                style={isActive ? {
+                  background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)',
+                  color: 'white',
+                } : {}}
+              >
+                <item.icon className={cn("w-5 h-5", isActive ? "text-white" : "text-gray-500 group-hover:text-indigo-600")} />
+                <span>{item.label}</span>
+
+                {isActive && (
+                  <ChevronRight className="w-4 h-4 ml-auto text-white opacity-80" />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="pt-4 border-t flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-8 h-8">
-              <AvatarFallback
-                className="text-white text-xs font-bold"
-                style={{ background: 'linear-gradient(135deg,#1d4ed8,#2563eb)' }}
-              >
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              {/* ✅ Real backend data */}
-              <span className="text-sm font-semibold truncate max-w-[100px]">
-                {user?.username || "User"}
-              </span>
-              <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">
-                {user?.email || ""}
-              </span>
-            </div>
-          </div>
+        <div className="pt-5 border-t-2 border-gray-200 flex items-center justify-between">
+
+          <UserProfilePopover />
+
           <button
             onClick={() => router.push('/logout')}
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+            className="p-2 rounded-lg hover:bg-red-50 transition-colors group"
+            title="Logout"
           >
-            <LogOut className="w-4 h-4" />
-            Logout
+            {/* <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-600" /> */}
           </button>
         </div>
       </div>

@@ -93,7 +93,7 @@ function EnterOtpForm() {
     if (loading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
-                <div className="w-10 h-10 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin" />
+                <div className="w-10 h-10 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin" />
                 <p className="text-sm text-slate-500 font-medium">Verifying OTP...</p>
             </div>
         );
@@ -129,7 +129,7 @@ function EnterOtpForm() {
                         disabled={loading || timeLeft <= 0}
                         placeholder="Enter 6-digit OTP"
                         maxLength={6}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-center tracking-widest focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-50"
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-center tracking-widest focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 disabled:bg-gray-50"
                     />
                 </div>
 
@@ -143,7 +143,7 @@ function EnterOtpForm() {
                 <button
                     type="submit"
                     disabled={loading || !otp.trim() || timeLeft <= 0}
-                    className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:bg-blue-400 disabled:cursor-not-allowed"
+                    className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition disabled:bg-indigo-400 disabled:cursor-not-allowed"
                 >
                     Verify OTP
                 </button>
@@ -157,9 +157,9 @@ function EnterOtpForm() {
                     Didn't receive it?{" "}
                     <span
                         onClick={!resending ? handleResend : undefined}
-                        className={`text-blue-600 font-medium transition ${resending
+                        className={`text-indigo-600 font-medium transition ${resending
                             ? "opacity-50 cursor-not-allowed"
-                            : "cursor-pointer hover:text-blue-700"
+                            : "cursor-pointer hover:text-indigo-700"
                             }`}
                     >
                         {resending ? "Resending..." : "Resend OTP"}
