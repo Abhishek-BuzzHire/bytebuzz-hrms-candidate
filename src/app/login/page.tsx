@@ -13,7 +13,7 @@ interface AuthResponseData {
     refresh: string;
 }
 
-function LoginContent() {
+export function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get("returnUrl");
@@ -236,19 +236,5 @@ function LoginContent() {
 
             </div>
         </div>
-    );
-}
-
-export default function LoginPage() {
-    return (
-        <Suspense fallback={
-            <div className="min-h-screen flex justify-center items-center bg-white">
-                <div className="text-center">
-                    <div className="text-gray-400">Loading...</div>
-                </div>
-            </div>
-        }>
-            <LoginContent />
-        </Suspense>
     );
 }
