@@ -1,13 +1,17 @@
 "use client";
 
-import { GoogleLogin } from "@react-oauth/google";
-import { AxiosError } from "axios";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+import axios, { AxiosError } from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState, Suspense } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchLogin } from "@/apis/user/route";
+interface AuthResponseData {
+    access: string;
+    refresh: string;
+}
 
 function LoginContent() {
     const router = useRouter();
@@ -63,14 +67,40 @@ function LoginContent() {
         }
     };
 
+    const handleGoogleLoginSuccess = async (cred: CredentialResponse) => {
+        const idToken = cred.credential;
+        if (!idToken) return;
+
+        try {
+            const response = await axios.post<AuthResponseData>(
+                `${process.env.NEXT_PUBLIC_API_URL}/account/google/`,
+                { id_token: idToken }
+            );
+            const { access, refresh } = response.data;
+            handleLoginSuccess(access, refresh);
+        } catch (error) {
+            console.error("Google login failed");
+        }
+    };
+
+    const handleLoginSuccess = (access: string, refresh: string) => {
+        login(access, refresh);
+        if (returnUrl) {
+            router.push(returnUrl);
+        } else {
+            const home = "/dashboard";
+            router.push(home);
+        }
+    };
+
     return (
         <div className="min-h-screen flex justify-center items-center bg-white font-sans">
             <div className="w-full max-w-[400px] px-6">
 
                 {/* Header */}
                 <div className="text-center mb-7">
-                    <div className="w-[52px] h-[52px] rounded-[14px] bg-indigo-50 border border-indigo-200 flex items-center justify-center mx-auto mb-5">
-                        <Image src="/images/logo.png" alt="" height={30} width={30} />
+                    <div className="  flex items-center justify-center mx-auto mb-5">
+                        <Image src="/images/bytebuzz_logo.webp" alt="" height={40} width={40} />
                     </div>
                     <h2 className="text-2xl font-bold tracking-[-0.025em] text-slate-900 mb-1.5">
                         Log in to your account
@@ -171,7 +201,7 @@ function LoginContent() {
                     disabled={submitting}
                     className="w-full py-3 text-[15px] font-semibold rounded-[10px] bg-indigo-600 text-white transition shadow-[0_1px_3px_rgba(79,70,229,0.25),0_4px_12px_rgba(79,70,229,0.15)] hover:bg-indigo-700 hover:-translate-y-[1px] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                    {submitting ? "Signing in..." : "Sign In"}
+                    {submitting ? "Logging in..." : "Log In"}
                 </button>
 
                 {/* Divider */}
@@ -181,18 +211,15 @@ function LoginContent() {
                     <div className="flex-1 h-px bg-gray-200" />
                 </div>
 
-                {/* Google */}
-                <div className="flex justify-center">
-                    <GoogleLogin
-                        onSuccess={() => console.log("login")}
-                        onError={() => console.log("Login Failed")}
-                        theme="outline"
-                        size="large"
-                        width="352"
-                        text="signin_with"
-                        logo_alignment="center"
-                    />
-                </div>
+                <GoogleLogin
+                    onSuccess={handleGoogleLoginSuccess}
+                    onError={() => console.log("Login Failed")}
+                    theme="outline"
+                    size="large"
+                    text="signin_with"
+                    shape="rectangular"
+                    logo_alignment="left"
+                />
 
                 {/* Sign Up */}
                 <div className="text-center mt-6">

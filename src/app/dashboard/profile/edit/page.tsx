@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import ProfileEditor from '@/components/profile/ProfileEditor';
 import { candidateApi } from '@/apis/user/index';
-import type { Candidate, Education, Experience, Resume, Skill } from '@/lib/types';
+import type { Candidate, Education, Experience, Skill, Resume } from '@/lib/types';
 
 interface ProfileData {
   basicInfo: Candidate;
@@ -101,7 +101,7 @@ export default function ProfileEditPage() {
   const fetchProfile = useCallback(async () => {
     setState({ status: 'loading' });
     try {
-      const [basicInfo, experience, education, skills, resumes,] = await Promise.all([
+      const [basicInfo, experience, education, skills, resumes] = await Promise.all([
         candidateApi.getBasicInfo(),
         candidateApi.getExperiences(),
         candidateApi.getEducations(),

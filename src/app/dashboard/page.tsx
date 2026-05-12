@@ -2,13 +2,12 @@
 
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useApplications, useSavedJobs, useActiveJobs } from '@/hooks/jobs/use-jobs';
-import { Briefcase, Bookmark, TrendingUp, CheckCircle2, XCircle, Clock, Loader2, MapPin } from 'lucide-react';
+import { Briefcase, Bookmark, TrendingUp, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import JobCard from '@/components/jobs/JobCard';
-import UserProfilePopover from "@/components/layout/UserProfilePopover";
 import { useAuth } from "@/context/AuthContext";
 import { candidateApi, jobsApi } from '@/apis/user';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +24,6 @@ export default function DashboardPage() {
   const { user } = useAuth();
 
   const [uploadingCV, setUploadingCV] = useState(false);
-  const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
   const [removingJobId, setRemovingJobId] = useState<number | null>(null);
 
   // Upload CV handler
@@ -44,9 +42,9 @@ export default function DashboardPage() {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Please upload a file smaller than 5MB.", variant: "destructive" });
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Please upload a file smaller than 10MB.", variant: "destructive" });
       return;
     }
 
@@ -64,21 +62,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Apply to saved job
-  const handleApplyJob = async (job: SavedJob) => {
-    setApplyingJobId(job.id);
-    try {
-      await jobsApi.applyJob(job.job_id || job.id);
-      toast({ title: "Success", description: `Applied to ${job.job_title} successfully!` });
-      // Optionally remove from saved after applying
-      await toggleSave(job as unknown as Job);
-    } catch (error: any) {
-      const message = error?.response?.data?.detail || "Failed to apply. Please try again.";
-      toast({ title: "Error", description: message, variant: "destructive" });
-    } finally {
-      setApplyingJobId(null);
-    }
-  };
+
 
   // Remove saved job
   const handleRemoveJob = async (job: SavedJob) => {

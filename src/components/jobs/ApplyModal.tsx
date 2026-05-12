@@ -41,11 +41,11 @@ export default function ApplyModal({ job, open, onOpenChange, onSubmit }: ApplyM
         <DialogHeader>
           <DialogTitle>Confirm Application</DialogTitle>
           <DialogDescription>
-            You're applying for <strong>{job?.job_title}</strong> at {job?.company_name}. Ready to submit?
+            Confirm your application for <strong>{job?.job_title}</strong>
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter className="space-x-2">
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

@@ -15,23 +15,23 @@ const cache: Record<string, any> = {};
 // ── Normalizers ───────────────────────────────────────────────────────────────
 function normalizeJob(raw: any): Job {
   return {
-    id:              raw.job_id ?? raw.id,
-    job_title:           raw.job_title ?? raw.title ?? '',
-    company_name:         raw.client_name ?? raw.company_name ?? raw.company ?? '',
-    location:        raw.job_location ?? raw.location ?? '',
-    work_mode:        raw.work_mode ?? '',
-    employment_type:  raw.job_type ?? raw.employment_type ?? '',
-    skills:          raw.skills ?? [],
-    description:     raw.job_overview ?? '',
+    id:              raw.id ?? raw.job_id,
+    job_title:       raw.title ?? raw.job_title ?? '',
+    company_name:    raw.company_name ?? raw.client_name ?? raw.company ?? '',
+    location:        raw.location ?? raw.job_location ?? '',
+    work_mode:       raw.is_remote ? 'remote' : (raw.work_mode ?? ''),
+    employment_type: raw.job_type ?? raw.employment_type ?? '',
+    skills: raw.required_skills ?? raw.skills ?? [],
+    description:     raw.job_overview ?? raw.description ?? '',
     responsibilities: raw.job_responsibilities ?? raw.responsibilities ?? [],
     qualifications:  raw.job_qualification ?? raw.qualifications ?? [],
-    job_min_salary:       raw.job_min_salary ?? 0,
-    job_max_salary:       raw.job_max_salary ?? 0,
-    job_min_exp:          raw.job_min_exp ?? raw.min_experience_months ?? raw.min_experience ?? 0,
-    job_max_exp:          raw.job_max_exp ?? raw.job_min_exp ?? 0,
-    logo_url:         raw.logo_url ?? raw.logoUrl,
-    experience:      raw.min_experience_months ?? raw.experience ?? 0,
-    posted_at:        raw.posted_at ?? raw.created_at ?? '',
+    job_min_salary:  parseFloat(raw.salary_min ?? raw.job_min_salary ?? 0),
+    job_max_salary:  parseFloat(raw.salary_max ?? raw.job_max_salary ?? 0),
+    job_min_exp:     raw.job_min_exp ?? raw.min_experience_months ?? 0,
+    job_max_exp:     raw.job_max_exp ?? raw.job_min_exp ?? 0,
+    logo_url: raw.company_logo ?? raw.logo_url ?? raw.logoUrl,
+    experience:      raw.experience_level ?? raw.experience ?? 0,
+    posted_at:       raw.published_at ?? raw.posted_at ?? raw.created_at ?? '',
   };
 }
 
@@ -44,7 +44,7 @@ function normalizeSavedJob(raw: any): SavedJob {
     location:        raw.job_location ?? raw.location ?? '',
     work_mode:        raw.work_mode ?? '',
     employment_type:  raw.job_type ?? raw.employment_type ?? '',
-    skills:          raw.skills ?? [],
+    skills:          raw.required_skills ?? raw.skills ?? [],
     description:     raw.job_description ?? raw.description ?? '',
     responsibilities: raw.job_responsibilities ?? raw.responsibilities ?? [],
     qualifications:  raw.job_qualification ?? raw.qualifications ?? [],
@@ -53,7 +53,7 @@ function normalizeSavedJob(raw: any): SavedJob {
     salary_currency:  raw.salary_currency ?? 'INR',
     job_min_exp:          raw.job_min_exp ?? 0,
     job_max_exp:          raw.job_max_exp ?? raw.job_min_exp ?? 0,
-    logo_url:         raw.logo_url ?? raw.logoUrl,
+    logo_url:         raw.company_logo ?? raw.logo_url ?? raw.logoUrl,
     saved_at:         raw.saved_at ?? raw.created_at ?? '',
   };
 }
@@ -94,9 +94,11 @@ export function useActiveJobs(filters?: JobFilters) {
 
     try {
       const res = await jobsApi.getJobs(filters);
-      const raw = res?.results ?? (Array.isArray(res) ? res : []);
+const raw = res?.data?.items ?? res?.results ?? (Array.isArray(res) ? res : []);
+      console.log('✅ raw jobs list:', raw);
       const normalized = raw.map(normalizeJob);
       cache[filtersKey] = normalized;
+      console.log('✅ normalized jobs list:', normalized);
       setData(normalized);
     } catch (err: any) {
       if (err.name !== 'AbortError') setData([]);

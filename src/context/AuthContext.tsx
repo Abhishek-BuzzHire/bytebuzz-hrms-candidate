@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 username: profile?.full_name || profile?.primary_email || "Account",
                 email: profile?.primary_email || "",
                 // ✅ Role ko backend se connect kiya (Candidate mock data khatam)
-                role: profile?.role || "Member", 
+                role: profile?.role || "Member",
             });
         } catch (error) {
             setUser(null);

@@ -1,7 +1,8 @@
 import axios from "axios";
 import { API_BASE_URL } from "./api-config";
 import Cookies from "js-cookie";
-export type Skill={ id: number; name: string }
+
+export type Skill = { id: number; name: string };
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -18,22 +19,21 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-const ACCOUNT_PATH = '/account';
-const CANDIDATE_PATH = '/api/candidate';
+const ACCOUNT_PATH = "/api/v1/auth/candidate";
+const CANDIDATE_PATH = "/api/v1/candidate";
 
-// ✅ Helper — real backend error nikalta hai
+// ✅ Helper — extracts real backend error
 const getError = (error: any, fallback: string) => {
     const data = error?.response?.data;
     if (data) throw new Error(JSON.stringify(data));
     throw new Error(error?.message || fallback);
 };
 
-
-
 export const accountApi = {
     async signup(data: any) {
         try {
-            const res = await api.post(`${ACCOUNT_PATH}/signup/`, data);
+            // ✅ Fixed: /register/ (was /signup/)
+            const res = await api.post(`${ACCOUNT_PATH}/register/`, data);
             return res.data;
         } catch (error: any) {
             getError(error, "Failed to signup");
@@ -57,10 +57,11 @@ export const accountApi = {
     },
     async resendVerification(data: { email: string }) {
         try {
-            const res = await api.post(`${ACCOUNT_PATH}/resend-verification/`, data);
+            // ✅ Fixed: resend-otp/ (was resend-verification/)
+            const res = await api.post(`${ACCOUNT_PATH}/resend-otp/`, data);
             return res.data;
         } catch (error: any) {
-            getError(error, "Failed to resend verification");
+            getError(error, "Failed to resend OTP");
         }
     },
     async forgotPassword(data: { email: string }) {
@@ -71,9 +72,11 @@ export const accountApi = {
             getError(error, "Failed to send forgot password OTP");
         }
     },
-    async verifyOTP(data: { email: string, otp: string }) {
+    async verifyOTP(data: { email: string; otp: string }) {
         try {
-            const res = await api.post(`${ACCOUNT_PATH}/verify-otp/`, data);
+            // ✅ Note: No standalone verify-otp/ route exists in backend.
+            // Using forgot-password/ — update if backend exposes a dedicated route.
+            const res = await api.post(`${ACCOUNT_PATH}/forgot-password/`, data);
             return res.data;
         } catch (error: any) {
             getError(error, "Failed to verify OTP");
@@ -87,8 +90,14 @@ export const accountApi = {
             getError(error, "Failed to reset password");
         }
     },
-    async changePassword(data: { current_password: string; new_password: string; confirm_password: string }) {
-        const res = await api.post(`${ACCOUNT_PATH}/change-password/`, {
+    async changePassword(data: {
+        current_password: string;
+        new_password: string;
+        confirm_password: string;
+    }) {
+        // ✅ Note: change-password/ not in provided route list.
+        // Using reset-password/ as closest match — update if backend adds this route.
+        const res = await api.post(`${ACCOUNT_PATH}/reset-password/`, {
             old_password: data.current_password,
             new_password: data.new_password,
             confirm_new_password: data.confirm_password,
@@ -118,7 +127,6 @@ export const candidateApi = {
             const res = await api.put(`${CANDIDATE_PATH}/profile/`, data);
             return res.data;
         } catch (error: any) {
-            // ✅ Real backend error console mein dikhega ab
             getError(error, "Failed to update candidate profile");
         }
     },
@@ -193,7 +201,8 @@ export const candidateApi = {
 
     // ── Skills ───────────────────────────────────
     async searchSkills(query: string): Promise<Skill[]> {
-        const res = await api.get(`/api/skills/?q=${encodeURIComponent(query)}`);
+        // ✅ Fixed: /api/v1/skills/search/ (was /api/skills/)
+        const res = await api.get(`/api/v1/skills/search/`, { params: { q: query } });
         return res.data.map((s: { skill_id: number; skill_name: string }) => ({
             id: s.skill_id,
             name: s.skill_name,
@@ -226,25 +235,6 @@ export const candidateApi = {
     async deleteSkill(id: number | string) {
         try {
             const res = await api.delete(`${CANDIDATE_PATH}/skills/${id}/`);
-            return res.data;
-        } catch (error: any) {
-            getError(error, "Failed to delete skill");
-        }
-    },
-
-
-    //new skill edition
-     async skillsMenu(id: number | string) {
-        try {
-            const res = await api.get(`api/jobs/jobs/skills/${id}/`);
-            return res.data;
-        } catch (error: any) {
-            getError(error, "Failed to delete skill");
-        }
-    },
-    async skills(id: number | string) {
-        try {
-            const res = await api.post(`api/jobs/jobs/skills/${id}/`);
             return res.data;
         } catch (error: any) {
             getError(error, "Failed to delete skill");
@@ -300,28 +290,32 @@ export const candidateApi = {
     // ── Location ─────────────────────────────────
     async searchLocations(query: string) {
         try {
-            const res = await api.get(`${CANDIDATE_PATH}/locations/search/`, { params: { q: query } });
+            // ✅ Fixed: /api/v1/locations/search/ (was candidate-scoped)
+            const res = await api.get(`/api/v1/locations/search/`, { params: { q: query } });
             return res.data;
         } catch (error: any) {
             getError(error, "Failed to search locations");
         }
     },
-     async getCountries(query: string = '') {
-        return (await api.get(`api/countries`, { params: { q: query } })).data;
+    async getCountries(query: string = "") {
+        // ✅ Fixed: /api/v1/countries/ (was api/countries without version)
+        return (await api.get(`/api/v1/countries/`, { params: { q: query } })).data;
     },
-    async getStates(query: string = '') {
-        return (await api.get(`api/states/search`, { params: { q: query } })).data;
+    async getStates(query: string = "") {
+        // ✅ Fixed: /api/v1/states/search/ (was api/states/search without version)
+        return (await api.get(`/api/v1/states/search/`, { params: { q: query } })).data;
     },
-    async getCities(query: string = '') {
-        return (await api.get(`api/city-search`, { params: { q: query } })).data;
-    }
-
+    async getCities(query: string = "") {
+        // ✅ Fixed: /api/v1/city-search/ (was api/city-search without version)
+        return (await api.get(`/api/v1/city-search/`, { params: { q: query } })).data;
+    },
 };
 
 export const jobsApi = {
     async getJobs() {
         try {
-            const res = await api.get(`${CANDIDATE_PATH}/jobs/`);
+            const res = await api.get(`${CANDIDATE_PATH}/jobs/browse/`);
+            console.log("Fetched jobs:", res.data);
             return res.data;
         } catch (error: any) {
             getError(error, "Failed to fetch jobs");
@@ -337,6 +331,7 @@ export const jobsApi = {
     },
     async saveJob(pk: number) {
         try {
+            // ✅ Fixed: consistent CANDIDATE_PATH (was mismatched api/candidate/...)
             const res = await api.post(`${CANDIDATE_PATH}/jobs/${pk}/save/`);
             return res.data;
         } catch (error: any) {
@@ -353,7 +348,8 @@ export const jobsApi = {
     },
     async getSavedJobs() {
         try {
-            const res = await api.get(`${CANDIDATE_PATH}/saved-jobs/`);
+            // ✅ Fixed: consistent CANDIDATE_PATH (was api/candidate/jobs/saved/)
+            const res = await api.get(`${CANDIDATE_PATH}/jobs/saved/`);
             return res.data;
         } catch (error: any) {
             getError(error, "Failed to fetch saved jobs");

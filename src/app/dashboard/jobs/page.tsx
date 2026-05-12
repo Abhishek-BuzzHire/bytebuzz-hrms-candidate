@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Briefcase, Loader2, X, Download, ChevronDown, MapPin, Check } from 'lucide-react';
+import { Search, Briefcase, Loader2, X, Download, ChevronDown, MapPin, Check, ArrowBigDown, ArrowDown } from 'lucide-react';
 import { useActiveJobs, useJobDetails, useSavedJobs, useApplications } from '@/hooks/jobs/use-jobs';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
@@ -456,9 +456,9 @@ export default function JobsPage() {
             {/* List header — never shrinks */}
             <div className="flex-shrink-0 flex items-center justify-between border-b border-gray-200 px-4 py-3">
               <div className="flex items-center gap-2">
-                <h2 className="text-[18px] font-semibold text-gray-800">All Jobs</h2>
-                <button className="flex h-6 w-6 items-center justify-center rounded-full border border-blue-300 bg-blue-100 text-blue-600">
-                  <Download className="w-4 h-4" />
+                <h2 className="text-[24px] font-bold text-gray-800">All Jobs</h2>
+                <button className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-300 text-white">
+                  <ArrowDown className="w-6 h-6  stroke-3  " />
                 </button>
               </div>
               <p className="text-sm font-medium text-gray-400">
